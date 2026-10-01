@@ -2,14 +2,14 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ExpenseTrack - tanggalmuda.com</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; }
         .spinner {
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
@@ -23,33 +23,40 @@
 </head>
 <body class="bg-white text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <!-- HEADER -->
+    <!-- HEADER / NAVBAR -->
     <header class="bg-blue-950 border-b border-blue-900 text-white sticky top-0 z-30 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-emerald-400 p-0.5 shadow-md flex items-center justify-center">
-                    <div class="w-full h-full bg-blue-950 rounded-[10px] flex items-center justify-center text-emerald-400">
-                        <i class="fa-solid fa-calendar-days text-lg"></i>
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-emerald-400 p-0.5 shadow-md flex items-center justify-center">
+                        <div class="w-full h-full bg-blue-950 rounded-[10px] flex items-center justify-center text-emerald-400">
+                            <i class="fa-solid fa-calendar-days text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight tracking-wide flex items-center text-white">
+                            tanggalmuda<span class="text-emerald-400">.com</span>
+                        </h1>
+                        <p class="text-xs text-blue-200">Pencatatan & Bukti Transaksi Pengeluaran</p>
                     </div>
                 </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight tracking-wide flex items-center text-white">
-                        tanggalmuda<span class="text-emerald-400">.com</span>
-                    </h1>
-                    <p class="text-xs text-blue-200">Pencatatan & Bukti Transaksi Pengeluaran</p>
-                </div>
+                <!-- Mobile Config Button -->
+                <button onclick="openConfigModal()" class="sm:hidden p-2 rounded-xl text-blue-200 hover:bg-blue-900 transition" title="Konfigurasi URL">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
             </div>
-            <div class="flex items-center space-x-2">
-                <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-blue-950 shadow-md transition">
+            
+            <div class="flex items-center space-x-2 w-full sm:w-auto justify-center overflow-x-auto pb-1 sm:pb-0">
+                <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-blue-950 shadow-md transition whitespace-nowrap">
                     <i class="fa-solid fa-plus-circle mr-1"></i> Input
                 </button>
-                <button onclick="switchTab('list')" id="nav-list" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition">
+                <button onclick="switchTab('list')" id="nav-list" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition whitespace-nowrap">
                     <i class="fa-solid fa-list-ul mr-1"></i> Riwayat
                 </button>
-                <button onclick="switchTab('report')" id="nav-report" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition">
+                <button onclick="switchTab('report')" id="nav-report" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition whitespace-nowrap">
                     <i class="fa-solid fa-chart-pie mr-1"></i> Laporan
                 </button>
-                <button onclick="openConfigModal()" class="p-2.5 rounded-xl text-blue-200 hover:bg-blue-900 transition" title="Konfigurasi Web App URL">
+                <button onclick="openConfigModal()" class="hidden sm:flex p-2.5 rounded-xl text-blue-200 hover:bg-blue-900 transition items-center justify-center" title="Konfigurasi Web App URL">
                     <i class="fa-solid fa-gear"></i>
                 </button>
             </div>
@@ -57,7 +64,7 @@
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 z-10">
+    <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 z-10">
         
         <!-- NOTIFICATION TOAST -->
         <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3">
@@ -67,7 +74,7 @@
 
         <!-- TAB 1: FORM INPUT -->
         <section id="tab-form" class="space-y-6">
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-5 sm:p-8">
                 <div class="border-b border-slate-100 pb-4 mb-6">
                     <h2 class="text-2xl font-bold text-slate-900">Form Pengeluaran</h2>
                     <p class="text-sm text-slate-500">Silakan lengkapi formulir pengeluaran ini.</p>
@@ -75,24 +82,26 @@
 
                 <form id="expense-form" onsubmit="confirmSubmit(event)" class="space-y-5">
                     
-                    <!-- BUKTI TRANSAKSI -->
+                    <!-- BUKTI TRANSAKSI (KAMERA & GALERI) -->
                     <div class="space-y-1.5">
                         <label class="block text-sm font-semibold text-slate-700">Bukti Transaksi (Nota / Struk) <span class="text-rose-500">*</span></label>
-                        <p class="text-xs text-slate-500">Ambil foto langsung dengan kamera perangkat atau pilih file.</p>
+                        <p class="text-xs text-slate-500">Ambil foto langsung dengan kamera HP atau pilih file dari galeri.</p>
                         
-                        <div id="upload-container" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-500 transition bg-white">
-                            <input type="file" id="receipt-file" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+                        <div id="upload-container" class="border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center hover:border-emerald-500 transition bg-white">
+                            <!-- Hidden Camera & Gallery Inputs -->
+                            <input type="file" id="receipt-camera" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+                            <input type="file" id="receipt-gallery" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                             
                             <div id="upload-placeholder" class="space-y-3">
                                 <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
                                     <i class="fa-solid fa-camera"></i>
                                 </div>
                                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                                    <button type="button" onclick="triggerCameraInput()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center">
-                                        <i class="fa-solid fa-camera mr-2"></i> Buka Kamera / Ambil Foto
+                                    <button type="button" onclick="document.getElementById('receipt-camera').click()" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center w-full sm:w-auto justify-center">
+                                        <i class="fa-solid fa-camera mr-2"></i> Buka Kamera HP
                                     </button>
-                                    <button type="button" onclick="triggerGalleryInput()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition flex items-center">
-                                        <i class="fa-solid fa-folder-open mr-2"></i> Pilih dari Galeri/File
+                                    <button type="button" onclick="document.getElementById('receipt-gallery').click()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition flex items-center w-full sm:w-auto justify-center">
+                                        <i class="fa-solid fa-folder-open mr-2"></i> Pilih Galeri / File
                                     </button>
                                 </div>
                                 <p class="text-xs text-slate-400">Format: JPG, PNG</p>
@@ -110,7 +119,15 @@
                                         </button>
                                     </div>
                                 </div>
-                                <p class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-check-circle mr-1"></i> Foto nota berhasil dimuat. Klik untuk zoom atau ulangi jika salah.</p>
+                                <div class="flex items-center justify-center gap-3">
+                                    <button type="button" onclick="openZoom(document.getElementById('receipt-preview').src)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
+                                        <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> Zoom Foto
+                                    </button>
+                                    <button type="button" onclick="resetPhoto()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-semibold">
+                                        <i class="fa-solid fa-rotate-right mr-1"></i> Ulangi / Ganti Foto
+                                    </button>
+                                </div>
+                                <p class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-check-circle mr-1"></i> Foto nota berhasil dimuat.</p>
                             </div>
                         </div>
                     </div>
@@ -179,7 +196,7 @@
 
         <!-- TAB 2: RIWAYAT / LIST -->
         <section id="tab-list" class="hidden space-y-6">
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-5 sm:p-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Riwayat Pengeluaran</h2>
@@ -194,7 +211,7 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
                                 <th class="p-3">Tanggal</th>
@@ -218,23 +235,23 @@
         <!-- TAB 3: LAPORAN & STATISTIK -->
         <section id="tab-report" class="hidden space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xl">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pengeluaran</p>
-                    <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
+                    <h3 id="stat-total" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xl">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Transaksi</p>
-                    <h3 id="stat-count" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    <h3 id="stat-count" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xl">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Terbesar</p>
-                    <h3 id="stat-top-category" class="text-2xl font-bold text-slate-900 mt-1">-</h3>
+                    <h3 id="stat-top-category" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">-</h3>
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-5 sm:p-6">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Grafik Pengeluaran per Kategori</h3>
-                <div class="relative h-72 sm:h-96 flex items-center justify-center">
+                <div class="relative h-64 sm:h-80 flex items-center justify-center">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -243,7 +260,7 @@
     </main>
 
     <!-- ZOOM MODAL -->
-    <div id="zoom-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="zoom-modal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="relative max-w-4xl max-h-full">
             <button onclick="closeZoom()" class="absolute -top-12 right-0 text-white text-xl p-2 hover:text-emerald-400 transition">
                 <i class="fa-solid fa-xmark text-2xl"></i>
@@ -253,10 +270,10 @@
     </div>
 
     <!-- CONFIRMATION MODAL -->
-    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
             <div class="flex items-center space-x-3 text-amber-500">
-                <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-xl shadow-inner">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-xl shadow-inner shrink-0">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
@@ -274,36 +291,47 @@
             </div>
 
             <div class="flex space-x-2 pt-2">
-                <button type="button" onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Belum, Perbaiki</button>
-                <button type="button" onclick="executeSubmit()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition">Ya, Simpan</button>
+                <button type="button" onclick="closeConfirmModal()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Belum, Perbaiki</button>
+                <button type="button" onclick="executeSubmit()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition">Ya, Simpan</button>
             </div>
         </div>
     </div>
 
     <!-- CONFIG MODAL (APPS SCRIPT URL) -->
-    <div id="config-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="config-modal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <h3 class="text-lg font-bold text-slate-900">Konfigurasi Google Apps Script URL</h3>
-            <p class="text-xs text-slate-500">Masukkan URL Web App Google Apps Script Anda agar aplikasi terhubung ke Google Spreadsheet.</p>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Web App URL</label>
-                <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none font-medium shadow-sm">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900">Konfigurasi Google Apps Script URL</h3>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
+            <p class="text-xs text-slate-500">URL Web App Google Apps Script yang sedang aktif saat ini:</p>
+            <div>
+                <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none font-mono shadow-inner">
+            </div>
+            <p class="text-[11px] text-slate-400 italic">Anda dapat memperbarui URL di atas jika ada perubahan deployment Apps Script.</p>
             <div class="flex justify-end space-x-2 pt-2">
-                <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Batal</button>
-                <button onclick="saveScriptUrl()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition">Simpan</button>
+                <button onclick="closeConfigModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Batal</button>
+                <button onclick="saveScriptUrl()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition shadow-md">Simpan URL</button>
             </div>
         </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // Default Web App URL yang sudah terintegrasi
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo3M99hMpIaJKUthG56B9tlzfYey9gpzZyxfsWTiRqHezOSceX1Rpr_2Ns2xNOb7Vq/exec";
+        
         let currentBase64Image = "";
         let allExpenses = [];
         let myChart = null;
 
         function getScriptUrl() {
-            return localStorage.getItem('gscript_url') || "";
+            let stored = localStorage.getItem('gscript_url');
+            if (!stored) {
+                localStorage.setItem('gscript_url', DEFAULT_SCRIPT_URL);
+                return DEFAULT_SCRIPT_URL;
+            }
+            return stored;
         }
 
         function openConfigModal() {
@@ -325,17 +353,17 @@
             }
             localStorage.setItem('gscript_url', url);
             closeConfigModal();
-            showToast("URL berhasil disimpan!");
+            showToast("URL berhasil diperbarui!");
             loadData();
         }
 
         function switchTab(tabId) {
             ['form', 'list', 'report'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition";
+                document.getElementById(`nav-${t}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition whitespace-nowrap";
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`nav-${tabId}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-600 text-white shadow-md transition";
+            document.getElementById(`nav-${tabId}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-blue-950 shadow-md transition whitespace-nowrap";
 
             if(tabId === 'list' || tabId === 'report') {
                 loadData();
@@ -385,18 +413,6 @@
             document.getElementById('nominal').value = rawNum;
         }
 
-        function triggerCameraInput() {
-            const fileInput = document.getElementById('receipt-file');
-            fileInput.setAttribute('capture', 'environment');
-            fileInput.click();
-        }
-
-        function triggerGalleryInput() {
-            const fileInput = document.getElementById('receipt-file');
-            fileInput.removeAttribute('capture');
-            fileInput.click();
-        }
-
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -436,7 +452,8 @@
 
         function resetPhoto() {
             currentBase64Image = "";
-            document.getElementById('receipt-file').value = "";
+            document.getElementById('receipt-camera').value = "";
+            document.getElementById('receipt-gallery').value = "";
             document.getElementById('receipt-preview').src = "";
             document.getElementById('upload-placeholder').classList.remove('hidden');
             document.getElementById('preview-container').classList.add('hidden');
@@ -493,12 +510,12 @@
             const url = getScriptUrl();
             if(!url) {
                 openConfigModal();
-                showToast("Harap setel Google Apps Script URL terlebih dahulu!", "error");
+                showToast("URL Google Apps Script belum diatur!", "error");
                 return;
             }
 
             if(!currentBase64Image) {
-                showToast("Bukti transaksi wajib diunggah!", "error");
+                showToast("Bukti transaksi wajib diunggah atau difoto!", "error");
                 return;
             }
 
@@ -557,6 +574,7 @@
                     document.getElementById('tanggal').valueAsDate = new Date();
                     document.getElementById('nama_karyawan_manual_container').classList.add('hidden');
                     resetPhoto();
+                    loadData();
                 } else {
                     showToast("Gagal: " + data.message, "error");
                 }
@@ -569,14 +587,18 @@
             });
         }
 
+        // JSONP Implementation to bypass CORS errors when fetching data from Google Apps Script
         function loadData() {
             const url = getScriptUrl();
             if(!url) return;
 
-            fetch(url + "?action=getExpenses")
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                const scriptEl = document.getElementById('jsonp-script');
+                if(scriptEl) scriptEl.remove();
+
+                if(data && data.status === "success") {
                     allExpenses = data.data;
                     renderTable(allExpenses);
                     updateReports(allExpenses);
@@ -587,8 +609,19 @@
                         }
                     });
                 }
-            })
-            .catch(err => console.error("Gagal memuat data:", err));
+            };
+
+            const existingScript = document.getElementById('jsonp-script');
+            if(existingScript) existingScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'jsonp-script';
+            script.src = `${url}?action=getExpenses&callback=${callbackName}`;
+            script.onerror = function() {
+                console.error("Gagal memuat data via JSONP.");
+                showToast("Gagal memuat data dari server.", "error");
+            };
+            document.body.appendChild(script);
         }
 
         function renderTable(dataList) {
@@ -602,11 +635,11 @@
                 <tr class="hover:bg-slate-50 transition border-b border-slate-100">
                     <td class="p-3 whitespace-nowrap text-slate-600">${item.tanggal}</td>
                     <td class="p-3 font-semibold text-slate-900">${item.nama_karyawan}</td>
-                    <td class="p-3"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">${item.kategori}</span></td>
+                    <td class="p-3"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold whitespace-nowrap">${item.kategori}</span></td>
                     <td class="p-3 max-w-xs truncate text-slate-600" title="${item.keterangan}">${item.keterangan}</td>
-                    <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(item.nominal).toLocaleString('id-ID')}</td>
-                    <td class="p-3 text-center">
-                        ${item.bukti_url ? `<button onclick="openZoom('${item.bukti_url}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-blue-600 border border-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-image mr-1"></i> Lihat</button>` : '<span class="text-slate-400 text-xs">Tidak ada</span>'}
+                    <td class="p-3 text-right font-bold text-slate-900 whitespace-nowrap">Rp ${Number(item.nominal).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        ${item.bukti_url ? `<button onclick="openZoom('${item.bukti_url}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-blue-600 border border-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-image mr-1"></i> Lihat</button>` : '<span class="text-slate-400 text-xs">Tidak ada</span>'}
                     </td>
                 </tr>
             `).join('');
@@ -668,18 +701,15 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#334155' } }
+                        legend: { position: 'bottom', labels: { color: '#334155', boxWidth: 12 } }
                     }
                 }
             });
         }
 
         window.onload = function() {
-            if(!getScriptUrl()) {
-                setTimeout(openConfigModal, 500);
-            } else {
-                loadData();
-            }
+            getScriptUrl();
+            loadData();
         }
     </script>
 </body>
