@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseTrack - tanggalmuda.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-white text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- HEADER -->
+    <header class="bg-blue-950 border-b border-blue-900 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-emerald-400 p-0.5 shadow-md flex items-center justify-center">
+                    <div class="w-full h-full bg-blue-950 rounded-[10px] flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-calendar-days text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide flex items-center text-white">
+                        tanggalmuda<span class="text-emerald-400">.com</span>
+                    </h1>
+                    <p class="text-xs text-blue-200">Pencatatan & Bukti Transaksi Pengeluaran</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-blue-950 shadow-md transition">
+                    <i class="fa-solid fa-plus-circle mr-1"></i> Input
+                </button>
+                <button onclick="switchTab('list')" id="nav-list" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition">
+                    <i class="fa-solid fa-list-ul mr-1"></i> Riwayat
+                </button>
+                <button onclick="switchTab('report')" id="nav-report" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-blue-100 hover:bg-blue-900 transition">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Laporan
+                </button>
+                <button onclick="openConfigModal()" class="p-2.5 rounded-xl text-blue-200 hover:bg-blue-900 transition" title="Konfigurasi Web App URL">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 z-10">
+        
+        <!-- NOTIFICATION TOAST -->
+        <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3">
+            <span id="toast-icon"><i class="fa-solid fa-circle-check text-emerald-400"></i></span>
+            <p id="toast-msg" class="text-sm font-medium">Berhasil menyimpan data!</p>
+        </div>
+
+        <!-- TAB 1: FORM INPUT -->
+        <section id="tab-form" class="space-y-6">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Form Pengeluaran</h2>
+                    <p class="text-sm text-slate-500">Silakan lengkapi formulir pengeluaran ini.</p>
+                </div>
+
+                <form id="expense-form" onsubmit="confirmSubmit(event)" class="space-y-5">
+                    
+                    <!-- BUKTI TRANSAKSI -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Bukti Transaksi (Nota / Struk) <span class="text-rose-500">*</span></label>
+                        <p class="text-xs text-slate-500">Ambil foto langsung dengan kamera perangkat atau pilih file.</p>
+                        
+                        <div id="upload-container" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-500 transition bg-white">
+                            <input type="file" id="receipt-file" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+                            
+                            <div id="upload-placeholder" class="space-y-3">
+                                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                                    <button type="button" onclick="triggerCameraInput()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center">
+                                        <i class="fa-solid fa-camera mr-2"></i> Buka Kamera / Ambil Foto
+                                    </button>
+                                    <button type="button" onclick="triggerGalleryInput()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition flex items-center">
+                                        <i class="fa-solid fa-folder-open mr-2"></i> Pilih dari Galeri/File
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-400">Format: JPG, PNG</p>
+                            </div>
+
+                            <div id="preview-container" class="hidden space-y-3">
+                                <div class="relative inline-block group">
+                                    <img id="receipt-preview" src="" alt="Bukti Transaksi" class="max-h-52 rounded-xl shadow-md mx-auto object-contain cursor-pointer border border-slate-200 bg-white" onclick="openZoom(this.src)">
+                                    <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center space-x-3">
+                                        <button type="button" onclick="openZoom(document.getElementById('receipt-preview').src)" class="p-2.5 bg-white text-slate-900 rounded-full hover:bg-slate-100 shadow" title="Zoom Foto">
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                        </button>
+                                        <button type="button" onclick="resetPhoto()" class="p-2.5 bg-rose-600 text-white rounded-full hover:bg-rose-700 shadow" title="Ulangi Foto">
+                                            <i class="fa-solid fa-rotate-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-check-circle mr-1"></i> Foto nota berhasil dimuat. Klik untuk zoom atau ulangi jika salah.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TANGGAL TRANSAKSI -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Tanggal Transaksi <span class="text-rose-500">*</span></label>
+                        <input type="date" id="tanggal" required class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium shadow-sm">
+                    </div>
+
+                    <!-- NAMA KARYAWAN -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Nama Karyawan <span class="text-rose-500">*</span></label>
+                        <select id="nama_karyawan_select" onchange="handleEmployeeChange(this.value)" required class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium shadow-sm">
+                            <option value="" disabled selected>Pilih Karyawan</option>
+                            <option value="Sugi Puswanto">Sugi Puswanto</option>
+                            <option value="Lainnya">Lainnya (Input Manual)...</option>
+                        </select>
+                        <div id="nama_karyawan_manual_container" class="hidden mt-2">
+                            <input type="text" id="nama_karyawan_manual" placeholder="Ketik nama karyawan baru..." class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- KATEGORI BIAYA -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Kategori Biaya <span class="text-rose-500">*</span></label>
+                        <select id="kategori" required class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium shadow-sm">
+                            <option value="" disabled selected>Pilih Kategori Biaya</option>
+                            <option value="Perizinan">Perizinan</option>
+                            <option value="Makan & Minum">Makan & Minum</option>
+                            <option value="Transportasi">Transportasi</option>
+                            <option value="Percetakan">Percetakan</option>
+                            <option value="Telepon & Internet">Telepon & Internet</option>
+                            <option value="ATK Kantor">ATK Kantor</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <!-- NOMINAL BIAYA -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Nominal Biaya (Rp) <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 font-semibold text-sm">Rp</span>
+                            <input type="text" id="nominal_display" required placeholder="150.000" oninput="formatCurrencyInput(this)" class="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-bold shadow-sm">
+                            <input type="hidden" id="nominal" required>
+                        </div>
+                    </div>
+
+                    <!-- KETERANGAN / KEPERLUAN -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-slate-700">Keterangan / Keperluan <span class="text-rose-500">*</span></label>
+                        <textarea id="keterangan" rows="3" required placeholder="Jelaskan detail keperluan pengeluaran ini..." class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium shadow-sm"></textarea>
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <div class="pt-4">
+                        <button type="submit" id="submit-btn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base">
+                            <span>Simpan Pengeluaran</span>
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 2: RIWAYAT / LIST -->
+        <section id="tab-list" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Riwayat Pengeluaran</h2>
+                        <p class="text-sm text-slate-500">Daftar seluruh transaksi yang telah dicatat.</p>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <input type="text" id="search-input" oninput="filterTable()" placeholder="Cari karyawan/kategori..." class="px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:w-64 font-medium shadow-sm">
+                        <button onclick="loadData()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition" title="Refresh Data">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Karyawan</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Keterangan</th>
+                                <th class="p-3 text-right">Nominal</th>
+                                <th class="p-3 text-center">Bukti Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expense-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-slate-400">Memuat data dari Google Spreadsheet...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LAPORAN & STATISTIK -->
+        <section id="tab-report" class="hidden space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pengeluaran</p>
+                    <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Transaksi</p>
+                    <h3 id="stat-count" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Terbesar</p>
+                    <h3 id="stat-top-category" class="text-2xl font-bold text-slate-900 mt-1">-</h3>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Grafik Pengeluaran per Kategori</h3>
+                <div class="relative h-72 sm:h-96 flex items-center justify-center">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ZOOM MODAL -->
+    <div id="zoom-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <button onclick="closeZoom()" class="absolute -top-12 right-0 text-white text-xl p-2 hover:text-emerald-400 transition">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+            <img id="zoomed-image" src="" class="max-h-[85vh] max-w-full rounded-2xl shadow-2xl object-contain mx-auto bg-white border border-slate-200">
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            <div class="flex items-center space-x-3 text-amber-500">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Konfirmasi Data</h3>
+                    <p class="text-xs text-slate-500">Apakah semua yang diinput sudah betul? Jika belum masih bisa diperbaiki.</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-4 rounded-2xl space-y-2 text-xs text-slate-700 border border-slate-200">
+                <div class="flex justify-between"><span class="font-semibold text-slate-500">Tanggal:</span> <span id="conf-tanggal" class="font-medium text-slate-900"></span></div>
+                <div class="flex justify-between"><span class="font-semibold text-slate-500">Karyawan:</span> <span id="conf-karyawan" class="font-medium text-slate-900"></span></div>
+                <div class="flex justify-between"><span class="font-semibold text-slate-500">Kategori:</span> <span id="conf-kategori" class="font-medium text-slate-900"></span></div>
+                <div class="flex justify-between"><span class="font-semibold text-slate-500">Nominal:</span> <span id="conf-nominal" class="font-bold text-emerald-600"></span></div>
+                <div class="pt-1 border-t border-slate-200"><span class="font-semibold text-slate-500 block mb-0.5">Keterangan:</span> <span id="conf-keterangan" class="text-slate-900 italic"></span></div>
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button type="button" onclick="closeConfirmModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Belum, Perbaiki</button>
+                <button type="button" onclick="executeSubmit()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition">Ya, Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIG MODAL (APPS SCRIPT URL) -->
+    <div id="config-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900">Konfigurasi Google Apps Script URL</h3>
+            <p class="text-xs text-slate-500">Masukkan URL Web App Google Apps Script Anda agar aplikasi terhubung ke Google Spreadsheet.</p>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Web App URL</label>
+                <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none font-medium shadow-sm">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition">Batal</button>
+                <button onclick="saveScriptUrl()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let currentBase64Image = "";
+        let allExpenses = [];
+        let myChart = null;
+
+        function getScriptUrl() {
+            return localStorage.getItem('gscript_url') || "";
+        }
+
+        function openConfigModal() {
+            document.getElementById('script-url-input').value = getScriptUrl();
+            document.getElementById('config-modal').classList.remove('hidden');
+            document.getElementById('config-modal').classList.add('flex');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').classList.remove('flex');
+            document.getElementById('config-modal').classList.add('hidden');
+        }
+
+        function saveScriptUrl() {
+            const url = document.getElementById('script-url-input').value.trim();
+            if(!url) {
+                showToast("URL tidak boleh kosong!", "error");
+                return;
+            }
+            localStorage.setItem('gscript_url', url);
+            closeConfigModal();
+            showToast("URL berhasil disimpan!");
+            loadData();
+        }
+
+        function switchTab(tabId) {
+            ['form', 'list', 'report'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).className = "px-3.5 py-2 rounded-xl text-sm font-semibold bg-emerald-600 text-white shadow-md transition";
+
+            if(tabId === 'list' || tabId === 'report') {
+                loadData();
+            }
+        }
+
+        document.getElementById('tanggal').valueAsDate = new Date();
+
+        function handleEmployeeChange(value) {
+            const manualContainer = document.getElementById('nama_karyawan_manual_container');
+            const manualInput = document.getElementById('nama_karyawan_manual');
+            if(value === 'Lainnya') {
+                manualContainer.classList.remove('hidden');
+                manualInput.required = true;
+                manualInput.focus();
+            } else {
+                manualContainer.classList.add('hidden');
+                manualInput.required = false;
+                manualInput.value = '';
+            }
+        }
+
+        function getSelectedEmployeeName() {
+            const selectVal = document.getElementById('nama_karyawan_select').value;
+            if(selectVal === 'Lainnya') {
+                return document.getElementById('nama_karyawan_manual').value.trim();
+            }
+            return selectVal;
+        }
+
+        function formatCurrencyInput(el) {
+            let val = el.value.replace(/[^,\d]/g, '').toString();
+            let split = val.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+            el.value = rupiah;
+
+            let rawNum = val.replace(/\./g, '').replace(',', '.');
+            document.getElementById('nominal').value = rawNum;
+        }
+
+        function triggerCameraInput() {
+            const fileInput = document.getElementById('receipt-file');
+            fileInput.setAttribute('capture', 'environment');
+            fileInput.click();
+        }
+
+        function triggerGalleryInput() {
+            const fileInput = document.getElementById('receipt-file');
+            fileInput.removeAttribute('capture');
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1000;
+
+                    if (width > height && width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    currentBase64Image = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    document.getElementById('receipt-preview').src = currentBase64Image;
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                    document.getElementById('preview-container').classList.remove('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetPhoto() {
+            currentBase64Image = "";
+            document.getElementById('receipt-file').value = "";
+            document.getElementById('receipt-preview').src = "";
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+            document.getElementById('preview-container').classList.add('hidden');
+        }
+
+        function openZoom(src) {
+            if(!src) return;
+            document.getElementById('zoomed-image').src = src;
+            document.getElementById('zoom-modal').classList.remove('hidden');
+            document.getElementById('zoom-modal').classList.add('flex');
+        }
+
+        function closeZoom() {
+            document.getElementById('zoom-modal').classList.remove('flex');
+            document.getElementById('zoom-modal').classList.add('hidden');
+        }
+
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = msg;
+            iconEl.innerHTML = type === "success" 
+                ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' 
+                : '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        function addEmployeeOptionIfNeeded(name) {
+            if(!name) return;
+            const select = document.getElementById('nama_karyawan_select');
+            let exists = false;
+            for(let i=0; i<select.options.length; i++) {
+                if(select.options[i].value.toLowerCase() === name.toLowerCase()) {
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists && name !== 'Sugi Puswanto') {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.text = name;
+                select.insertBefore(opt, select.options[select.options.length - 1]);
+            }
+        }
+
+        function confirmSubmit(e) {
+            e.preventDefault();
+            const url = getScriptUrl();
+            if(!url) {
+                openConfigModal();
+                showToast("Harap setel Google Apps Script URL terlebih dahulu!", "error");
+                return;
+            }
+
+            if(!currentBase64Image) {
+                showToast("Bukti transaksi wajib diunggah!", "error");
+                return;
+            }
+
+            const empName = getSelectedEmployeeName();
+            if(!empName) {
+                showToast("Nama karyawan wajib diisi!", "error");
+                return;
+            }
+
+            document.getElementById('conf-tanggal').innerText = document.getElementById('tanggal').value;
+            document.getElementById('conf-karyawan').innerText = empName;
+            document.getElementById('conf-kategori').innerText = document.getElementById('kategori').value;
+            document.getElementById('conf-nominal').innerText = "Rp " + document.getElementById('nominal_display').value;
+            document.getElementById('conf-keterangan').innerText = document.getElementById('keterangan').value;
+
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-modal').classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.remove('flex');
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        function executeSubmit() {
+            closeConfirmModal();
+            const empName = getSelectedEmployeeName();
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner mr-2"></div> Menghubungkan & Mengirim...`;
+
+            const payload = {
+                action: "addExpense",
+                tanggal: document.getElementById('tanggal').value,
+                nama_karyawan: empName,
+                kategori: document.getElementById('kategori').value,
+                nominal: document.getElementById('nominal').value,
+                keterangan: document.getElementById('keterangan').value,
+                image_data: currentBase64Image
+            };
+
+            fetch(getScriptUrl(), {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Simpan Pengeluaran</span> <i class="fa-solid fa-paper-plane"></i>`;
+                
+                if(data.status === "success") {
+                    showToast("Pengeluaran berhasil disimpan!");
+                    addEmployeeOptionIfNeeded(empName);
+                    document.getElementById('expense-form').reset();
+                    document.getElementById('tanggal').valueAsDate = new Date();
+                    document.getElementById('nama_karyawan_manual_container').classList.add('hidden');
+                    resetPhoto();
+                } else {
+                    showToast("Gagal: " + data.message, "error");
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Simpan Pengeluaran</span> <i class="fa-solid fa-paper-plane"></i>`;
+                showToast("Terjadi kesalahan jaringan/CORS.", "error");
+                console.error(err);
+            });
+        }
+
+        function loadData() {
+            const url = getScriptUrl();
+            if(!url) return;
+
+            fetch(url + "?action=getExpenses")
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    allExpenses = data.data;
+                    renderTable(allExpenses);
+                    updateReports(allExpenses);
+                    
+                    allExpenses.forEach(item => {
+                        if(item.nama_karyawan) {
+                            addEmployeeOptionIfNeeded(item.nama_karyawan);
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error("Gagal memuat data:", err));
+        }
+
+        function renderTable(dataList) {
+            const tbody = document.getElementById('expense-table-body');
+            if(dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Belum ada data pengeluaran.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = dataList.map(item => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-3 whitespace-nowrap text-slate-600">${item.tanggal}</td>
+                    <td class="p-3 font-semibold text-slate-900">${item.nama_karyawan}</td>
+                    <td class="p-3"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">${item.kategori}</span></td>
+                    <td class="p-3 max-w-xs truncate text-slate-600" title="${item.keterangan}">${item.keterangan}</td>
+                    <td class="p-3 text-right font-bold text-slate-900">Rp ${Number(item.nominal).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center">
+                        ${item.bukti_url ? `<button onclick="openZoom('${item.bukti_url}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-blue-600 border border-slate-200 rounded-lg text-xs font-semibold"><i class="fa-solid fa-image mr-1"></i> Lihat</button>` : '<span class="text-slate-400 text-xs">Tidak ada</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allExpenses.filter(item => 
+                item.nama_karyawan.toLowerCase().includes(query) || 
+                item.kategori.toLowerCase().includes(query) ||
+                item.keterangan.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        function updateReports(dataList) {
+            let total = 0;
+            const catMap = {};
+
+            dataList.forEach(item => {
+                const nom = Number(item.nominal) || 0;
+                total += nom;
+                catMap[item.kategori] = (catMap[item.kategori] || 0) + nom;
+            });
+
+            document.getElementById('stat-total').innerText = "Rp " + total.toLocaleString('id-ID');
+            document.getElementById('stat-count').innerText = dataList.length;
+
+            let topCat = "-";
+            let maxVal = 0;
+            for(const [cat, val] of Object.entries(catMap)) {
+                if(val > maxVal) {
+                    maxVal = val;
+                    topCat = cat;
+                }
+            }
+            document.getElementById('stat-top-category').innerText = topCat;
+
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const labels = Object.keys(catMap);
+            const values = Object.values(catMap);
+
+            if(myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#64748b'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            if(!getScriptUrl()) {
+                setTimeout(openConfigModal, 500);
+            } else {
+                loadData();
+            }
+        }
+    </script>
+</body>
+</html>
