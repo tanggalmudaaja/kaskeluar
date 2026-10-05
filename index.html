@@ -79,17 +79,17 @@
 
                 <form id="expense-form" onsubmit="confirmSubmit(event)" class="space-y-5">
                     
-                    <!-- BUKTI TRANSAKSI (MULTI FOTO HINGGA 20X) -->
+                    <!-- BUKTI TRANSAKSI (MULTI FILE GAMBAR / PDF HINGGA 20X) -->
                     <div class="space-y-1.5">
                         <div class="flex justify-between items-center">
-                            <label class="block text-sm font-semibold text-slate-700">Bukti Transaksi (Nota / Struk)</label>
-                            <span id="receipt-counter" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">1 / 20 Foto</span>
+                            <label class="block text-sm font-semibold text-slate-700">Bukti Transaksi (Nota / Struk / PDF)</label>
+                            <span id="receipt-counter" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">1 / 20 File</span>
                         </div>
-                        <p class="text-xs text-slate-500">Anda dapat menambahkan hingga 20 foto nota (kamera atau galeri).</p>
+                        <p class="text-xs text-slate-500">Anda dapat menambahkan hingga 20 file bukti (foto kamera, galeri, atau dokumen PDF).</p>
                         
-                        <!-- Hidden Inputs for Multi Capture -->
-                        <input type="file" id="receipt-camera" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
-                        <input type="file" id="receipt-gallery" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                        <!-- Hidden Inputs -->
+                        <input type="file" id="receipt-camera" accept="image/*,.pdf" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+                        <input type="file" id="receipt-gallery" accept="image/*,.pdf" class="hidden" onchange="handleFileSelect(event)">
 
                         <!-- List Preview Container -->
                         <div id="receipts-list-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3 my-3">
@@ -100,10 +100,10 @@
                         <div id="add-receipt-box" class="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:border-emerald-500 transition bg-white">
                             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
                                 <button type="button" onclick="triggerCamera()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto">
-                                    <i class="fa-solid fa-camera mr-2"></i> Tambah Foto Kamera
+                                    <i class="fa-solid fa-camera mr-2"></i> Buka Kamera / Foto
                                 </button>
                                 <button type="button" onclick="triggerGallery()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center cursor-pointer w-full sm:w-auto">
-                                    <i class="fa-solid fa-folder-open mr-2"></i> Pilih dari Galeri
+                                    <i class="fa-solid fa-folder-open mr-2"></i> Pilih File / PDF
                                 </button>
                             </div>
                         </div>
@@ -278,7 +278,7 @@
                 <div class="flex justify-between"><span class="font-semibold text-slate-500">Karyawan:</span> <span id="conf-karyawan" class="font-medium text-slate-900"></span></div>
                 <div class="flex justify-between"><span class="font-semibold text-slate-500">Kategori:</span> <span id="conf-kategori" class="font-medium text-slate-900"></span></div>
                 <div class="flex justify-between"><span class="font-semibold text-slate-500">Nominal:</span> <span id="conf-nominal" class="font-bold text-emerald-600"></span></div>
-                <div class="flex justify-between"><span class="font-semibold text-slate-500">Jumlah Foto Nota:</span> <span id="conf-photos-count" class="font-bold text-blue-600"></span></div>
+                <div class="flex justify-between"><span class="font-semibold text-slate-500">Jumlah File Nota:</span> <span id="conf-photos-count" class="font-bold text-blue-600"></span></div>
                 <div class="pt-1 border-t border-slate-200"><span class="font-semibold text-slate-500 block mb-0.5">Keterangan:</span> <span id="conf-keterangan" class="text-slate-900 italic"></span></div>
             </div>
 
@@ -311,7 +311,7 @@
     <script>
         const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1sF1RH-l8wMBZ6RrHzKqNEB8qeMCs_VTiNKaEa2cGRiBBA5GI66I6MBB2VkHqZn4w/exec";
         
-        let uploadedReceipts = []; // Array untuk menyimpan multiple foto (maks 20)
+        let uploadedReceipts = []; // Array untuk menyimpan multiple file (gambar atau pdf, maks 20, default 1)
         let allExpenses = [];
         let myChart = null;
         let currentZoomLevel = 1;
@@ -406,7 +406,7 @@
 
         function triggerCamera() {
             if (uploadedReceipts.length >= 20) {
-                showToast("Maksimal 20 foto nota per transaksi!", "error");
+                showToast("Maksimal 20 file bukti per transaksi!", "error");
                 return;
             }
             document.getElementById('receipt-camera').click();
@@ -414,7 +414,7 @@
 
         function triggerGallery() {
             if (uploadedReceipts.length >= 20) {
-                showToast("Maksimal 20 foto nota per transaksi!", "error");
+                showToast("Maksimal 20 file bukti per transaksi!", "error");
                 return;
             }
             document.getElementById('receipt-gallery').click();
@@ -425,42 +425,51 @@
             if (!file) return;
 
             if (uploadedReceipts.length >= 20) {
-                showToast("Maksimal 20 foto nota tercapai!", "error");
+                showToast("Maksimal 20 file bukti tercapai!", "error");
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 1200;
+                const resultData = e.target.result;
+                const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                    if (width > height && width > maxDim) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else if (height > maxDim) {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                    uploadedReceipts.push(compressedBase64);
-                    
+                if (isPdf) {
+                    uploadedReceipts.push({ data: resultData, type: 'pdf', name: file.name });
                     renderReceiptsList();
-
-                    // Reset input values so same file can be chosen again if needed
                     document.getElementById('receipt-camera').value = "";
                     document.getElementById('receipt-gallery').value = "";
-                };
-                img.src = e.target.result;
+                } else {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 1200;
+
+                        if (width > height && width > maxDim) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else if (height > maxDim) {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                        uploadedReceipts.push({ data: compressedBase64, type: 'image', name: file.name });
+                        
+                        renderReceiptsList();
+
+                        document.getElementById('receipt-camera').value = "";
+                        document.getElementById('receipt-gallery').value = "";
+                    };
+                    img.src = resultData;
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -475,7 +484,7 @@
             const counterEl = document.getElementById('receipt-counter');
             const addBox = document.getElementById('add-receipt-box');
 
-            counterEl.innerText = `${uploadedReceipts.length} / 20 Foto`;
+            counterEl.innerText = `${uploadedReceipts.length} / 20 File`;
 
             if (uploadedReceipts.length >= 20) {
                 addBox.classList.add('opacity-50', 'pointer-events-none');
@@ -484,26 +493,41 @@
             }
 
             if (uploadedReceipts.length === 0) {
-                container.innerHTML = `<p class="col-span-2 sm:col-span-3 text-center text-xs text-slate-400 py-3 italic">Belum ada foto nota yang diunggah. (Default minimal 1 disarankan)</p>`;
+                container.innerHTML = `<p class="col-span-2 sm:col-span-3 text-center text-xs text-slate-400 py-3 italic">Belum ada file bukti yang diunggah. (Default minimal 1 file disarankan)</p>`;
                 return;
             }
 
-            container.innerHTML = uploadedReceipts.map((src, idx) => `
-                <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-2 flex flex-col items-center group shadow-sm">
-                    <img src="${src}" alt="Nota ${idx+1}" class="h-28 w-full object-contain rounded-lg bg-white cursor-pointer" onclick="openZoom('${src}')" title="Klik untuk Zoom">
-                    <div class="flex items-center justify-between w-full mt-2 px-1">
-                        <span class="text-[11px] font-bold text-slate-600">Nota #${idx+1}</span>
-                        <div class="flex space-x-1">
-                            <button type="button" onclick="openZoom('${src}')" class="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs cursor-pointer" title="Zoom">
-                                <i class="fa-solid fa-magnifying-glass-plus"></i>
-                            </button>
-                            <button type="button" onclick="removeReceipt(${idx})" class="p-1 bg-rose-100 hover:bg-rose-200 text-rose-600 rounded text-xs cursor-pointer" title="Hapus">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+            container.innerHTML = uploadedReceipts.map((item, idx) => {
+                let previewHtml = '';
+                if (item.type === 'pdf') {
+                    previewHtml = `
+                        <div class="h-28 w-full bg-slate-100 rounded-lg flex flex-col items-center justify-center text-rose-600 border border-slate-200">
+                            <i class="fa-solid fa-file-pdf text-3xl mb-1"></i>
+                            <span class="text-[10px] font-bold text-slate-700 px-2 truncate max-w-full">${item.name || 'Dokumen PDF'}</span>
+                        </div>
+                    `;
+                } else {
+                    previewHtml = `<img src="${item.data}" alt="Bukti ${idx+1}" class="h-28 w-full object-contain rounded-lg bg-white cursor-pointer" onclick="openZoom('${item.data}')" title="Klik untuk Zoom">`;
+                }
+
+                return `
+                    <div class="relative bg-slate-50 border border-slate-200 rounded-xl p-2 flex flex-col items-center group shadow-sm">
+                        ${previewHtml}
+                        <div class="flex items-center justify-between w-full mt-2 px-1">
+                            <span class="text-[11px] font-bold text-slate-600">File #${idx+1}</span>
+                            <div class="flex space-x-1">
+                                ${item.type !== 'pdf' ? `
+                                <button type="button" onclick="openZoom('${item.data}')" class="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs cursor-pointer" title="Zoom">
+                                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                </button>` : ''}
+                                <button type="button" onclick="removeReceipt(${idx})" class="p-1 bg-rose-100 hover:bg-rose-200 text-rose-600 rounded text-xs cursor-pointer" title="Hapus">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function openZoom(src) {
@@ -583,7 +607,7 @@
             }
 
             if(uploadedReceipts.length === 0) {
-                showToast("Harap lampirkan minimal 1 foto bukti transaksi!", "error");
+                showToast("Harap lampirkan minimal 1 file bukti transaksi!", "error");
                 return;
             }
 
@@ -597,7 +621,7 @@
             document.getElementById('conf-karyawan').innerText = empName;
             document.getElementById('conf-kategori').innerText = document.getElementById('kategori').value;
             document.getElementById('conf-nominal').innerText = "Rp " + document.getElementById('nominal_display').value;
-            document.getElementById('conf-photos-count').innerText = uploadedReceipts.length + " Foto Nota";
+            document.getElementById('conf-photos-count').innerText = uploadedReceipts.length + " File Bukti";
             document.getElementById('conf-keterangan').innerText = document.getElementById('keterangan').value;
 
             document.getElementById('confirm-modal').classList.remove('hidden');
@@ -617,16 +641,15 @@
             btn.disabled = true;
             btn.innerHTML = `<div class="spinner mr-2"></div> Menghubungkan & Mengirim...`;
 
-            // Kirim gambar pertama sebagai utama dan gabungkan sisanya jika ada
             const payload = {
                 action: "addExpense",
                 tanggal: document.getElementById('tanggal').value,
                 nama_karyawan: empName,
                 kategori: document.getElementById('kategori').value,
                 nominal: document.getElementById('nominal').value,
-                keterangan: document.getElementById('keterangan').value + (uploadedReceipts.length > 1 ? ` [${uploadedReceipts.length} Foto Nota Terlampir]` : ''),
-                image_data: uploadedReceipts[0] || "",
-                all_images: uploadedReceipts // Mendukung hingga 20 foto
+                keterangan: document.getElementById('keterangan').value + (uploadedReceipts.length > 1 ? ` [${uploadedReceipts.length} File Bukti Terlampir]` : ''),
+                image_data: uploadedReceipts[0] ? uploadedReceipts[0].data : "",
+                all_images: uploadedReceipts.map(r => r.data)
             };
 
             fetch(getScriptUrl(), {
