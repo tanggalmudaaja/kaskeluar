@@ -23,6 +23,7 @@
 </head>
 <body class="bg-white text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden">
 
+    <!-- HEADER / NAVBAR -->
     <header class="bg-blue-950 border-b border-blue-900 text-white sticky top-0 z-30 shadow-md">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -85,7 +86,7 @@
                             <label class="block text-sm font-semibold text-slate-700">Bukti Transaksi (Nota / Struk / PDF)</label>
                             <span id="receipt-counter" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">1 / 20 File</span>
                         </div>
-                        <p class="text-xs text-slate-500">Anda dapat menambahkan hingga 20 file bukti (foto kamera, galeri, atau dokumen PDF).</p>
+                        <p class="text-xs text-slate-500">Anda dapat melampirkan hingga 20 file bukti (foto kamera, galeri, atau dokumen PDF).</p>
                         
                         <!-- Hidden Inputs -->
                         <input type="file" id="receipt-camera" accept="image/*,.pdf" capture="environment" class="hidden" onchange="handleFileSelect(event)">
@@ -236,7 +237,7 @@
 
     </main>
 
-    <!-- ZOOM MODAL WITH ZOOM IN / ZOOM OUT CAPABILITY -->
+    <!-- ZOOM MODAL FOR IMAGES -->
     <div id="zoom-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
         <div class="absolute top-4 right-4 z-50 flex items-center space-x-2 bg-slate-800/80 p-2 rounded-2xl border border-slate-700 shadow-xl">
             <button onclick="zoomInImage()" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-xl flex items-center justify-center transition shadow text-lg cursor-pointer" title="Zoom In (+)">
@@ -257,6 +258,21 @@
         </div>
         <div class="absolute bottom-4 bg-slate-800/80 px-4 py-2 rounded-xl text-slate-300 text-xs shadow-lg border border-slate-700 pointer-events-none">
             Tips: Gunakan tombol Zoom In / Zoom Out di pojok kanan atas atau tombol reset.
+        </div>
+    </div>
+
+    <!-- PDF PREVIEW MODAL -->
+    <div id="pdf-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-2 sm:p-4">
+        <div class="absolute top-4 right-4 z-50 flex items-center space-x-2 bg-slate-800/80 p-2 rounded-2xl border border-slate-700 shadow-xl">
+            <a id="pdf-download-btn" href="#" target="_blank" class="px-3 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition shadow text-xs font-bold cursor-pointer" title="Buka / Download PDF">
+                <i class="fa-solid fa-download mr-1.5"></i> Download / Tab Baru
+            </a>
+            <button onclick="closePdfModal()" class="w-10 h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl flex items-center justify-center transition shadow text-xl ml-2 cursor-pointer" title="Tutup">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="w-full max-w-4xl h-[85vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-700 mt-12">
+            <iframe id="pdf-iframe" src="" class="w-full h-full border-0"></iframe>
         </div>
     </div>
 
@@ -499,15 +515,26 @@
 
             container.innerHTML = uploadedReceipts.map((item, idx) => {
                 let previewHtml = '';
+                let actionBtn = '';
                 if (item.type === 'pdf') {
                     previewHtml = `
-                        <div class="h-28 w-full bg-slate-100 rounded-lg flex flex-col items-center justify-center text-rose-600 border border-slate-200">
+                        <div class="h-28 w-full bg-slate-100 rounded-lg flex flex-col items-center justify-center text-rose-600 border border-slate-200 cursor-pointer" onclick="openPdfPreview('${item.data}')" title="Klik untuk Preview PDF">
                             <i class="fa-solid fa-file-pdf text-3xl mb-1"></i>
                             <span class="text-[10px] font-bold text-slate-700 px-2 truncate max-w-full">${item.name || 'Dokumen PDF'}</span>
                         </div>
                     `;
+                    actionBtn = `
+                        <button type="button" onclick="openPdfPreview('${item.data}')" class="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs cursor-pointer" title="Preview PDF">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    `;
                 } else {
                     previewHtml = `<img src="${item.data}" alt="Bukti ${idx+1}" class="h-28 w-full object-contain rounded-lg bg-white cursor-pointer" onclick="openZoom('${item.data}')" title="Klik untuk Zoom">`;
+                    actionBtn = `
+                        <button type="button" onclick="openZoom('${item.data}')" class="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs cursor-pointer" title="Zoom">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </button>
+                    `;
                 }
 
                 return `
@@ -516,10 +543,7 @@
                         <div class="flex items-center justify-between w-full mt-2 px-1">
                             <span class="text-[11px] font-bold text-slate-600">File #${idx+1}</span>
                             <div class="flex space-x-1">
-                                ${item.type !== 'pdf' ? `
-                                <button type="button" onclick="openZoom('${item.data}')" class="p-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs cursor-pointer" title="Zoom">
-                                    <i class="fa-solid fa-magnifying-glass-plus"></i>
-                                </button>` : ''}
+                                ${actionBtn}
                                 <button type="button" onclick="removeReceipt(${idx})" class="p-1 bg-rose-100 hover:bg-rose-200 text-rose-600 rounded text-xs cursor-pointer" title="Hapus">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
@@ -561,6 +585,22 @@
         function resetZoom() {
             currentZoomLevel = 1;
             document.getElementById('zoomed-image').style.transform = `scale(${currentZoomLevel})`;
+        }
+
+        function openPdfPreview(dataUrl) {
+            if(!dataUrl) return;
+            document.getElementById('pdf-iframe').src = dataUrl;
+            document.getElementById('pdf-download-btn').href = dataUrl;
+            const modal = document.getElementById('pdf-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdf-iframe').src = "";
+            const modal = document.getElementById('pdf-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
         }
 
         function showToast(msg, type = "success") {
