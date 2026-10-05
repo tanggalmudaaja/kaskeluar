@@ -1,154 +1,454 @@
-const SPREADSHEET_ID = "10UXiZCWcBw7fH3CFTqnYINT8AnRO0YIxwZJCymypcFw";
-const DRIVE_FOLDER_ID = "1dkXORKv5qI7Dmik6HQgpxmcIGUg3wcu3";
-
-function doGet(e) {
-  let action = e && e.parameter && e.parameter.action ? e.parameter.action : "";
-  let callback = e && e.parameter && e.parameter.callback ? e.parameter.callback : "";
-  
-  let result = { success: false, message: "Aksi tidak dikenal" };
-  
-  try {
-    setupDatabaseAutomatically();
-
-    if (action === "getExpenseOptions") {
-      result = { success: true, data: getExpenseOptionsData() };
-    } else if (action === "getExpenses") {
-      result = { success: true, data: getAllExpenses() };
-    } else {
-      result = { success: true, message: "API Expense Tracker Aktif" };
-    }
-  } catch (err) {
-    result = { success: false, message: err.toString() };
-  }
-  
-  if (callback) {
-    let jsonString = JSON.stringify(result);
-    return ContentService.createTextOutput(callback + "(" + jsonString + ")")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
-    setupDatabaseAutomatically();
-
-    let data = JSON.parse(e.postData.contents);
-    let action = data.action;
-    let payload = data.payload;
-    
-    let result = { success: false, message: "Aksi tidak dikenal" };
-    
-    if (action === "saveExpense") {
-      result = saveExpenseRecord(payload);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function setupDatabaseAutomatically() {
-  try {
-    let ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let sheet = ss.getSheetByName("Pengeluaran");
-    if (!sheet) {
-      sheet = ss.insertSheet("Pengeluaran");
-      sheet.appendRow([
-        "Timestamp", 
-        "ID Transaksi", 
-        "Tanggal", 
-        "Nama Karyawan", 
-        "Kategori Biaya", 
-        "Nominal Biaya", 
-        "Keterangan", 
-        "Bukti Transaksi (URL)"
-      ]);
-      sheet.getRange("1:1").setFontWeight("bold");
-      sheet.setFrozenRows(1);
-    }
-    return sheet;
-  } catch (err) {
-    throw new Error("Gagal melakukan setup database otomatis: " + err.toString());
-  }
-}
-
-function getExpenseSheet() {
-  return setupDatabaseAutomatically();
-}
-
-function getExpenseOptionsData() {
-  return {
-    kategori: ["Perizinan", "Makan & minum", "Transportasi", "Percetakan", "Telepon & internet", "Lainnya"],
-    karyawan: ["Sugi Puswanto"]
-  };
-}
-
-function saveExpenseRecord(payload) {
-  let sheet = getExpenseSheet();
-  let folder;
-  
-  try {
-    folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-  } catch (e) {
-    folder = DriveApp.getRootFolder();
-  }
-  
-  let fileUrls = [];
-  if (payload.files && Array.isArray(payload.files)) {
-    payload.files.forEach((fileObj, index) => {
-      if (fileObj.base64 && fileObj.name) {
-        try {
-          let parts = fileObj.base64.split(";base64,");
-          let contentType = parts[0].replace("data:", "");
-          let rawData = Utilities.base64Decode(parts[1]);
-          let blob = Utilities.newBlob(rawData, contentType, "Nota_" + payload.id_transaksi + "_" + (index + 1) + "_" + fileObj.name);
-          let savedFile = folder.createFile(blob);
-          savedFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-          fileUrls.push(savedFile.getUrl());
-        } catch (err) {
-          fileUrls.push("Gagal Upload: " + err.toString());
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Pencatatan Pengeluaran - TanggalMuda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
+                    }
+                }
+            }
         }
-      }
-    });
-  }
-  
-  let timestamp = new Date();
-  
-  sheet.appendRow([
-    timestamp,                 // A: Timestamp
-    payload.id_transaksi,      // B: ID Transaksi
-    payload.tanggal,           // C: Tanggal
-    payload.nama_karyawan,     // D: Nama Karyawan
-    payload.kategori,          // E: Kategori Biaya
-    payload.nominal,           // F: Nominal Biaya
-    payload.keterangan,        // G: Keterangan
-    fileUrls.join(", ")        // H: Bukti Transaksi (URL)
-  ]);
-  
-  return { success: true, message: "Pengeluaran berhasil disimpan ke Google Spreadsheet!" };
-}
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .custom-input { background-color: #f8fafc; border: 1.5px solid #cbd5e1; transition: all 0.2s ease; width: 100%; }
+        .custom-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15); background-color: #ffffff; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex-grow flex flex-col justify-between">
 
-function getAllExpenses() {
-  let sheet = getExpenseSheet();
-  let rows = sheet.getDataRange().getValues();
-  let list = [];
-  for (let i = 1; i < rows.length; i++) {
-    list.push({
-      timestamp: rows[i][0],
-      id_transaksi: rows[i][1],
-      tanggal: rows[i][2],
-      nama_karyawan: rows[i][3],
-      kategori: rows[i][4],
-      nominal: rows[i][5],
-      keterangan: rows[i][6],
-      bukti: rows[i][7]
-    });
-  }
-  return list;
-}
+    <!-- Header -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm w-full">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold shadow">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <h1 class="font-heading font-bold text-sm sm:text-base text-slate-900 leading-tight">Pencatatan Pengeluaran</h1>
+                    <p class="text-[10px] text-slate-500">Google Spreadsheet & Apps Script</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer" title="Pengaturan URL Web App">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-4xl mx-auto px-4 py-6 w-full">
+        <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-6">
+            
+            <div class="text-center pb-4 border-b border-slate-100">
+                <h2 class="text-xl sm:text-2xl font-extrabold font-heading text-slate-900">Form Pengeluaran</h2>
+                <p class="text-xs text-slate-500 mt-1">Silakan lengkapi formulir pengeluaran di bawah ini.</p>
+            </div>
+
+            <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                
+                <!-- 1. Bukti Transaksi -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Bukti Transaksi (Gambar / PDF) — Maks 20 File
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <button type="button" onclick="triggerFileInput()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs border border-slate-300 cursor-pointer shadow-xs">
+                            <i class="fa-solid fa-folder-open mr-1.5 text-brand-600"></i> Pilih File / Galeri
+                        </button>
+                        <button type="button" onclick="triggerCameraInput()" class="px-3.5 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-semibold rounded-xl text-xs border border-brand-200 cursor-pointer shadow-xs">
+                            <i class="fa-solid fa-camera mr-1.5 text-brand-600"></i> Buka Kamera HP
+                        </button>
+                    </div>
+                    <input type="file" id="receiptFileInput" accept="image/*,.pdf" multiple onchange="handleFilesSelected(this)" class="hidden">
+                    <input type="file" id="cameraCaptureInput" accept="image/*" capture="environment" onchange="handleFilesSelected(this)" class="hidden">
+                    
+                    <div id="receiptPreviewContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2"></div>
+                </div>
+
+                <!-- 2. Tanggal -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Tanggal Transaksi *</label>
+                    <input type="date" id="expDate" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
+                </div>
+
+                <!-- 3. Nama Karyawan -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nama Karyawan *</label>
+                    <select id="expEmployee" onchange="handleEmployeeChange(this)" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
+                        <option value="Sugi Puswanto">Sugi Puswanto</option>
+                        <option value="Lainnya">Lainnya (Input Manual)...</option>
+                    </select>
+                </div>
+                <div id="containerManualEmployee" class="hidden">
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nama Karyawan Baru *</label>
+                    <input type="text" id="manualEmployeeInput" placeholder="Ketik nama karyawan" class="w-full px-3.5 py-2.5 rounded-xl custom-input">
+                </div>
+
+                <!-- 4. Kategori Biaya -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Kategori Biaya *</label>
+                    <select id="expCategory" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
+                        <option value="">-- Pilih Kategori --</option>
+                        <option value="Perizinan">Perizinan</option>
+                        <option value="Makan & minum">Makan & minum</option>
+                        <option value="Transportasi">Transportasi</option>
+                        <option value="Percetakan">Percetakan</option>
+                        <option value="Telepon & internet">Telepon & internet</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+
+                <!-- 5. Nominal Biaya -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nominal Biaya (Rp) *</label>
+                    <input type="text" id="expNominal" oninput="formatCurrencyInput(this)" required placeholder="Contoh: 150.000" class="w-full px-3.5 py-2.5 rounded-xl custom-input font-bold font-mono text-slate-900">
+                </div>
+
+                <!-- 6. Keterangan -->
+                <div>
+                    <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Keterangan *</label>
+                    <textarea id="expNote" rows="3" required placeholder="Tuliskan keterangan detail pengeluaran..." class="w-full px-3.5 py-2.5 rounded-xl custom-input"></textarea>
+                </div>
+
+                <!-- Tombol Submit -->
+                <div class="pt-2">
+                    <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition text-sm cursor-pointer">
+                        Simpan Pengeluaran
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+        &copy; 2026 Tanggalmuda.com — Expense Tracker System
+    </footer>
+
+    <!-- Modal Konfirmasi Sebelum Simpan -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="text-center space-y-1">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl mb-2">
+                    <i class="fa-solid fa-circle-question text-2xl text-brand-600"></i>
+                </div>
+                <h3 class="font-bold text-slate-900 font-heading text-base">Konfirmasi Data Pengeluaran</h3>
+                <p class="text-xs text-slate-500">Apakah semua data yang diinput sudah betul?</p>
+            </div>
+            <div id="confirmSummaryBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-1.5 text-xs text-slate-700 max-h-60 overflow-y-auto"></div>
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="closeConfirmModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold text-xs cursor-pointer">Periksa Lagi</button>
+                <button type="button" onclick="executeSaveExpense()" id="btnExecuteSave" class="w-1/2 bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-semibold text-xs shadow-md cursor-pointer">Yes, Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zoom Maksimal untuk Gambar & PDF -->
+    <div id="mediaModal" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-2 sm:p-4">
+        <div class="absolute top-4 right-4 flex items-center space-x-3 z-50">
+            <button type="button" onclick="closeMediaModal()" class="text-white text-xl w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/40 cursor-pointer shadow-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="mediaModalContent" class="w-full h-full flex items-center justify-center overflow-auto p-2"></div>
+    </div>
+
+    <!-- Modal Pengaturan URL Web App -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-gear text-brand-600 mr-2"></i> Pengaturan Web App URL</h3>
+                <button type="button" onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">URL Google Apps Script Aktif Saat Ini:</label>
+                <input type="text" id="settingsUrlInput" class="w-full px-3 py-2 rounded-xl custom-input text-xs font-mono">
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="closeSettingsModal()" class="w-1/2 bg-slate-100 py-2.5 rounded-xl font-semibold text-xs cursor-pointer">Batal</button>
+                <button type="button" onclick="saveSettingsUrl()" class="w-1/2 bg-brand-600 text-white py-2.5 rounded-xl font-semibold text-xs cursor-pointer">Simpan URL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal / Animasi Progress Penyimpanan -->
+    <div id="customAlertModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-100">
+            <div id="alertIconWrapper" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-emerald-50 text-emerald-600 text-2xl">
+                <i id="alertIcon" class="fa-solid fa-check"></i>
+            </div>
+            <h3 id="alertTitle" class="font-heading font-bold text-lg text-slate-900">Pemberitahuan</h3>
+            <p id="alertMessage" class="text-xs sm:text-sm text-slate-600">-</p>
+            <button type="button" id="alertOkBtn" onclick="closeCustomAlert()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs cursor-pointer">OK / Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        let DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1sF1RH-l8wMBZ6RrHzKqNEB8qeMCs_VTiNKaEa2cGRiBBA5GI66I6MBB2VkHqZn4w/exec";
+        let storedUrl = localStorage.getItem('EXPENSE_APP_URL');
+        let GOOGLE_SCRIPT_URL = storedUrl ? storedUrl : DEFAULT_SCRIPT_URL;
+
+        let uploadedFilesArray = [];
+        let pendingExpensePayload = null;
+
+        window.onload = function() {
+            document.getElementById('expDate').valueAsDate = new Date();
+            document.getElementById('settingsUrlInput').value = GOOGLE_SCRIPT_URL;
+        };
+
+        function openSettingsModal() {
+            document.getElementById('settingsUrlInput').value = GOOGLE_SCRIPT_URL;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+        function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+        function saveSettingsUrl() {
+            let val = document.getElementById('settingsUrlInput').value.trim();
+            if (val) {
+                GOOGLE_SCRIPT_URL = val;
+                localStorage.setItem('EXPENSE_APP_URL', val);
+                closeSettingsModal();
+                showAlert('Berhasil', 'URL Web App berhasil diperbarui!', true);
+            }
+        }
+
+        function showAlert(title, message, isSuccess = true, isLoading = false) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerHTML = message;
+            let iconWrapper = document.getElementById('alertIconWrapper');
+            let icon = document.getElementById('alertIcon');
+            let okBtn = document.getElementById('alertOkBtn');
+
+            if (isLoading) {
+                iconWrapper.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-brand-50 text-brand-600 text-2xl";
+                icon.className = "fa-solid fa-spinner fa-spin";
+                okBtn.classList.add('hidden');
+            } else {
+                okBtn.classList.remove('hidden');
+                if (isSuccess) {
+                    iconWrapper.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-emerald-50 text-emerald-600 text-2xl";
+                    icon.className = "fa-solid fa-check";
+                } else {
+                    iconWrapper.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-rose-50 text-rose-600 text-2xl";
+                    icon.className = "fa-solid fa-triangle-exclamation";
+                }
+            }
+            document.getElementById('customAlertModal').classList.remove('hidden');
+        }
+
+        function closeCustomAlert() {
+            let icon = document.getElementById('alertIcon');
+            if(icon.classList.contains('fa-spinner')) return;
+            document.getElementById('customAlertModal').classList.add('hidden');
+        }
+
+        function triggerFileInput() { document.getElementById('receiptFileInput').click(); }
+        function triggerCameraInput() { document.getElementById('cameraCaptureInput').click(); }
+
+        function handleFilesSelected(input) {
+            if (!input.files || input.files.length === 0) return;
+            let files = Array.from(input.files);
+            
+            if (uploadedFilesArray.length + files.length > 20) {
+                showAlert('Batas Maksimal', 'Maksimal lampiran bukti transaksi adalah 20 file.', false);
+                return;
+            }
+
+            files.forEach(file => {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedFilesArray.push({
+                        name: file.name,
+                        type: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
+                        base64: e.target.result
+                    });
+                    renderReceiptPreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            input.value = '';
+        }
+
+        function renderReceiptPreviews() {
+            let container = document.getElementById('receiptPreviewContainer');
+            container.innerHTML = '';
+            
+            uploadedFilesArray.forEach((item, index) => {
+                let div = document.createElement('div');
+                div.className = "relative border rounded-xl p-2 bg-slate-50 flex flex-col items-center justify-center aspect-square overflow-hidden shadow-xs";
+                
+                let isPdf = item.type.includes('pdf') || item.name.toLowerCase().endsWith('.pdf');
+
+                if (isPdf) {
+                    div.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full cursor-pointer w-full" onclick="previewMedia(${index})">
+                            <i class="fa-solid fa-file-pdf text-rose-600 text-3xl mb-1"></i>
+                            <span class="text-[10px] text-slate-600 text-center truncate w-full px-1 font-semibold">${item.name}</span>
+                            <span class="text-[9px] text-brand-600 mt-1 underline">Ketuk untuk Preview</span>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <img src="${item.base64}" class="w-full h-full object-cover rounded-lg cursor-pointer" onclick="previewMedia(${index})">
+                    `;
+                }
+
+                let delBtn = document.createElement('button');
+                delBtn.type = "button";
+                delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                delBtn.className = "absolute top-1.5 right-1.5 bg-rose-600 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center shadow cursor-pointer";
+                delBtn.onclick = () => {
+                    uploadedFilesArray.splice(index, 1);
+                    renderReceiptPreviews();
+                };
+                
+                div.appendChild(delBtn);
+                container.appendChild(div);
+            });
+        }
+
+        function previewMedia(index) {
+            let item = uploadedFilesArray[index];
+            let contentDiv = document.getElementById('mediaModalContent');
+            contentDiv.innerHTML = '';
+
+            let isPdf = item.type.includes('pdf') || item.name.toLowerCase().endsWith('.pdf');
+
+            if (isPdf) {
+                contentDiv.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center">
+                        <div class="mb-2 text-white text-xs font-semibold px-3 py-1 bg-slate-800 rounded-lg flex items-center justify-between w-full max-w-xl">
+                            <span class="truncate">${item.name}</span>
+                            <a href="${item.base64}" download="${item.name}" class="text-brand-400 hover:underline ml-2"><i class="fa-solid fa-download"></i> Unduh PDF</a>
+                        </div>
+                        <iframe src="${item.base64}" class="w-full max-w-4xl h-[85vh] rounded-2xl bg-white shadow-2xl"></iframe>
+                    </div>
+                `;
+            } else {
+                contentDiv.innerHTML = `
+                    <div class="relative w-full h-full flex items-center justify-center overflow-auto">
+                        <img src="${item.base64}" class="max-w-none w-auto h-auto min-w-[50%] min-h-[50%] object-contain rounded-xl shadow-2xl transition-transform duration-200 cursor-zoom-in" id="zoomableImage" onclick="toggleImageZoom(this)">
+                    </div>
+                `;
+            }
+            document.getElementById('mediaModal').classList.remove('hidden');
+        }
+
+        function toggleImageZoom(img) {
+            if (img.style.transform === 'scale(2)') {
+                img.style.transform = 'scale(1)';
+                img.style.cursor = 'zoom-in';
+            } else {
+                img.style.transform = 'scale(2)';
+                img.style.cursor = 'zoom-out';
+            }
+        }
+
+        function closeMediaModal() { document.getElementById('mediaModal').classList.add('hidden'); }
+
+        function handleEmployeeChange(select) {
+            let manualDiv = document.getElementById('containerManualEmployee');
+            let manualInput = document.getElementById('manualEmployeeInput');
+            if (select.value === 'Lainnya') {
+                manualDiv.classList.remove('hidden');
+                manualInput.required = true;
+                manualInput.focus();
+            } else {
+                manualDiv.classList.add('hidden');
+                manualInput.required = false;
+                manualInput.value = '';
+            }
+        }
+
+        function formatCurrencyInput(input) {
+            let value = input.value.replace(/[^,\d]/g, '');
+            let splitValue = value.split(',');
+            let remainder = splitValue[0].length % 3;
+            let rupiah = splitValue[0].substr(0, remainder);
+            let thousands = splitValue[0].substr(remainder).match(/\d{3}/gi);
+            if (thousands) {
+                let separator = remainder ? '.' : '';
+                rupiah += separator + thousands.join('.');
+            }
+            rupiah = splitValue[1] !== undefined ? rupiah + ',' + splitValue[1] : rupiah;
+            input.value = rupiah;
+        }
+
+        function parseRawNumber(formattedStr) {
+            if (!formattedStr) return 0;
+            return Number(String(formattedStr).replace(/\./g, '').replace(/,/g, '.')) || 0;
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            let empSelect = document.getElementById('expEmployee').value;
+            let finalEmployee = empSelect === 'Lainnya' ? document.getElementById('manualEmployeeInput').value.trim() : empSelect;
+
+            pendingExpensePayload = {
+                id_transaksi: "TRX-" + Math.floor(100000 + Math.random() * 900000),
+                tanggal: document.getElementById('expDate').value,
+                nama_karyawan: finalEmployee,
+                kategori: document.getElementById('expCategory').value,
+                nominal: parseRawNumber(document.getElementById('expNominal').value),
+                keterangan: document.getElementById('expNote').value.trim(),
+                files: uploadedFilesArray
+            };
+
+            document.getElementById('confirmSummaryBox').innerHTML = `
+                <p><b>ID Transaksi:</b> ${pendingExpensePayload.id_transaksi}</p>
+                <p><b>Tanggal:</b> ${pendingExpensePayload.tanggal}</p>
+                <p><b>Karyawan:</b> ${pendingExpensePayload.nama_karyawan}</p>
+                <p><b>Kategori:</b> ${pendingExpensePayload.kategori}</p>
+                <p><b>Nominal:</b> Rp ${pendingExpensePayload.nominal.toLocaleString('id-ID')}</p>
+                <p><b>Keterangan:</b> ${pendingExpensePayload.keterangan}</p>
+                <p><b>Jumlah Bukti:</b> ${pendingExpensePayload.files.length} file dilampirkan</p>
+            `;
+
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); }
+
+        function executeSaveExpense() {
+            closeConfirmModal();
+            showAlert('Sedang Menyimpan', 'Mohon tunggu sebentar, sistem sedang mengunggah file bukti transaksi & mencatat data ke Google Spreadsheet...', true, true);
+            
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                redirect: 'follow',
+                body: JSON.stringify({ action: 'saveExpense', payload: pendingExpensePayload })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    showAlert('Berhasil', res.message, true, false);
+                    document.getElementById('expenseForm').reset();
+                    document.getElementById('expDate').valueAsDate = new Date();
+                    uploadedFilesArray = [];
+                    renderReceiptPreviews();
+                } else {
+                    showAlert('Gagal', res.message, false, false);
+                }
+            })
+            .catch(err => {
+                showAlert('Gagal Koneksi', 'Terjadi kesalahan saat menghubungi server: ' + err.message, false, false);
+            });
+        }
+    </script>
+</body>
+</html>
