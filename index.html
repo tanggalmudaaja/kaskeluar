@@ -49,7 +49,7 @@
                     <p class="text-[10px] text-slate-500">Sistem Pencatatan & Penggantian Dantal</p>
                 </div>
             </div>
-            <!-- Tombol Sinkronisasi di Pojok Kanan Atas -->
+            <!-- Tombol Sinkronisasi & Setting -->
             <div class="flex items-center space-x-2">
                 <button type="button" onclick="fetchDataFromBackend(true)" class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold flex items-center space-x-1.5 cursor-pointer transition border border-brand-200 shadow-xs" title="Sinkronisasi Data Sekarang">
                     <i class="fa-solid fa-rotate" id="syncIcon"></i>
@@ -86,9 +86,7 @@
 
     <main class="flex-grow max-w-6xl mx-auto px-4 py-6 w-full">
 
-        <!-- VIEW 1: DASHBOARD INTERAKTIF -->
         <section id="tabDashboard" class="space-y-6">
-            <!-- Header Summary & Filter -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-extrabold font-heading text-slate-900">Dashboard Monitoring Dana Talangan</h2>
@@ -102,9 +100,7 @@
                 </div>
             </div>
 
-            <!-- KPI Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Card 1: Total Hutang Dantal -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Dana Talangan</span>
@@ -116,7 +112,6 @@
                     <p class="text-[11px] text-slate-500 mt-1"><span id="kpiTotalTrxCount">0</span> Transaksi Dantal Terdaftar</p>
                 </div>
 
-                <!-- Card 2: Sudah Diganti -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sudah Diganti</span>
@@ -128,7 +123,6 @@
                     <p class="text-[11px] text-emerald-700 font-medium mt-1"><i class="fa-solid fa-arrow-down-long"></i> Terbayarkan ke Karyawan</p>
                 </div>
 
-                <!-- Card 3: Sisa Hutang Talangan -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sisa Hutang Dantal</span>
@@ -140,7 +134,6 @@
                     <p class="text-[11px] text-rose-600 font-semibold mt-1" id="kpiUnpaidCount">0 Belum Lunas</p>
                 </div>
 
-                <!-- Card 4: Persentase Pelunasan -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rasio Penggantian</span>
@@ -155,9 +148,7 @@
                 </div>
             </div>
 
-            <!-- Dashboard Visual Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Chart 1: Visual Kategori -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1 flex flex-col justify-between">
                     <h3 class="text-sm font-bold font-heading text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
                         <span><i class="fa-solid fa-chart-pie text-brand-600 mr-2"></i> Kategori Dana Talangan</span>
@@ -167,7 +158,6 @@
                     </div>
                 </div>
 
-                <!-- Chart 2: Status Pelunasan -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
                     <h3 class="text-sm font-bold font-heading text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
                         <span><i class="fa-solid fa-chart-column text-brand-600 mr-2"></i> Sisa Hutang vs Sudah Diganti per Karyawan</span>
@@ -179,10 +169,8 @@
             </div>
         </section>
 
-        <!-- VIEW 2: FORM HUTANG LAIN2 - DANA TALANGAN PENGELUARAN -->
         <section id="tabFormDantal" class="hidden max-w-4xl mx-auto">
             <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-6">
-                
                 <div class="text-center pb-4 border-b border-slate-100">
                     <div class="inline-flex items-center space-x-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-semibold mb-2">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -193,8 +181,6 @@
                 </div>
 
                 <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="space-y-4 text-xs sm:text-sm">
-                    
-                    <!-- 1. Bukti Transaksi -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">
                             Bukti Transaksi (Gambar / PDF) — Maks 20 File
@@ -209,17 +195,14 @@
                         </div>
                         <input type="file" id="receiptFileInput" accept="image/*,.pdf" multiple onchange="handleFilesSelected(this)" class="hidden">
                         <input type="file" id="cameraCaptureInput" accept="image/*" capture="environment" onchange="handleFilesSelected(this)" class="hidden">
-                        
                         <div id="receiptPreviewContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2"></div>
                     </div>
 
-                    <!-- 2. Tanggal -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Tanggal Transaksi *</label>
                         <input type="date" id="expDate" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
                     </div>
 
-                    <!-- 3. Nama Karyawan -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nama Karyawan *</label>
                         <select id="expEmployee" onchange="handleEmployeeChange(this)" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
@@ -232,7 +215,6 @@
                         <input type="text" id="manualEmployeeInput" placeholder="Ketik nama karyawan" class="w-full px-3.5 py-2.5 rounded-xl custom-input">
                     </div>
 
-                    <!-- 4. Kategori Biaya -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Kategori Biaya *</label>
                         <select id="expCategory" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
@@ -246,34 +228,28 @@
                         </select>
                     </div>
 
-                    <!-- 5. Nominal Biaya -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nominal Biaya (Rp) *</label>
                         <input type="text" id="expNominal" oninput="formatCurrencyInput(this)" required placeholder="Contoh: 150.000" class="w-full px-3.5 py-2.5 rounded-xl custom-input font-bold font-mono text-slate-900">
                     </div>
 
-                    <!-- 6. Keterangan -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Keterangan *</label>
                         <textarea id="expNote" rows="3" required placeholder="Tuliskan keterangan detail pengeluaran dana talangan..." class="w-full px-3.5 py-2.5 rounded-xl custom-input"></textarea>
                     </div>
 
-                    <!-- Tombol Submit -->
                     <div class="pt-2">
                         <button type="submit" id="btnSubmitForm" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition text-sm cursor-pointer flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-floppy-disk"></i>
                             <span>Simpan Hutang Dantal</span>
                         </button>
                     </div>
-
                 </form>
             </div>
         </section>
 
-        <!-- VIEW 3: FORM PEMBAYARAN PENGGANTIAN DANTAL -->
         <section id="tabFormPenggantian" class="hidden max-w-4xl mx-auto space-y-6">
             <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-6">
-                
                 <div class="text-center pb-4 border-b border-slate-100">
                     <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold mb-2">
                         <i class="fa-solid fa-money-bill-transfer"></i>
@@ -284,14 +260,11 @@
                 </div>
 
                 <form id="repayForm" onsubmit="handleRepayFormSubmit(event)" class="space-y-4 text-xs sm:text-sm">
-                    
-                    <!-- 1. Tanggal Pembayaran -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Tanggal Pembayaran *</label>
                         <input type="date" id="repayDate" required class="w-full px-3.5 py-2.5 rounded-xl custom-input">
                     </div>
 
-                    <!-- 2. Karyawan Penerima Penggantian -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Karyawan Penerima *</label>
                         <select id="repayEmployee" onchange="onRepayEmployeeChange()" required class="w-full px-3.5 py-2.5 rounded-xl custom-input font-medium">
@@ -299,7 +272,6 @@
                         </select>
                     </div>
 
-                    <!-- 3. Mode Pengalokasian Pembayaran -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Metode Pembayaran / Alokasi *</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -310,7 +282,6 @@
                                     <span class="block text-[10px] text-slate-500">Otomatis melunasi transaksi paling lama terlebih dahulu</span>
                                 </div>
                             </label>
-
                             <label class="flex items-center p-3 border rounded-xl bg-slate-50 cursor-pointer hover:bg-slate-100 transition">
                                 <input type="radio" name="repayMode" value="SPECIFIC" onchange="toggleRepayMode()" class="w-4 h-4 text-brand-600 focus:ring-brand-500">
                                 <div class="ml-3">
@@ -321,7 +292,6 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Container: Specific Transactions Checkboxes -->
                     <div id="containerSpecificTrx" class="hidden space-y-2">
                         <div class="flex items-center justify-between">
                             <label class="block font-semibold uppercase tracking-wider text-slate-700">Pilih Transaksi Yang Dibayar *</label>
@@ -339,19 +309,16 @@
                         </div>
                     </div>
 
-                    <!-- 4. Nominal Pembayaran Penggantian -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Nominal Pembayaran (Rp) *</label>
                         <input type="text" id="repayNominal" oninput="formatCurrencyInput(this); updateRepayPreview();" required placeholder="Contoh: 200.000" class="w-full px-3.5 py-2.5 rounded-xl custom-input font-bold font-mono text-emerald-700 text-base">
                     </div>
 
-                    <!-- 5. Keterangan / Referensi Transfer -->
                     <div>
                         <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Keterangan / Nomor Referensi *</label>
                         <input type="text" id="repayNote" required placeholder="Contoh: Transfer BCA Ref 882199 / Pelunasan Dantal Januari" class="w-full px-3.5 py-2.5 rounded-xl custom-input">
                     </div>
 
-                    <!-- Live Allocation Preview Box -->
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
                         <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center justify-between">
                             <span>Simulasi Alokasi Penggantian</span>
@@ -362,18 +329,16 @@
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="pt-2">
                         <button type="submit" id="btnSubmitRepay" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition text-sm cursor-pointer flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-check-circle"></i>
                             <span>Proses Pembayaran Penggantian</span>
                         </button>
                     </div>
-
                 </form>
             </div>
 
-            <!-- History Pembayaran Parsial / Riwayat Cicilan -->
+            <!-- Riwayat History Pembayaran -->
             <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
                     <div>
@@ -408,11 +373,8 @@
             </div>
         </section>
 
-        <!-- VIEW 4: LAPORAN & TABEL DETAIL DANTAL -->
         <section id="tabLaporan" class="hidden space-y-4">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
-                
-                <!-- Table Header & Controls -->
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                         <h2 class="font-heading font-bold text-lg sm:text-xl text-slate-900 leading-tight">Laporan & Detail Transaksi Dantal</h2>
@@ -423,17 +385,13 @@
                             <i class="fa-solid fa-rotate text-brand-600"></i>
                             <span class="hidden sm:inline">Sync Data</span>
                         </button>
-                        <button type="button" onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition" title="Pengaturan URL Web App">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
                     </div>
                 </div>
 
-                <!-- Filters & Search Bar -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="reportSearch" oninput="renderReportTable()" placeholder="Cari ID, Karyawan, Kategori, Keterangan..." class="pl-9 pr-3 py-2 rounded-xl custom-input text-xs">
+                        <input type="text" id="reportSearch" oninput="renderReportTable()" placeholder="Cari ID, Karyawan, Kategori..." class="pl-9 pr-3 py-2 rounded-xl custom-input text-xs">
                     </div>
                     <div>
                         <select id="reportFilterStatus" onchange="renderReportTable()" class="w-full px-3 py-2 rounded-xl custom-input text-xs font-medium">
@@ -450,7 +408,6 @@
                     </div>
                 </div>
 
-                <!-- Table Wrapper -->
                 <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -474,22 +431,17 @@
                     </table>
                 </div>
 
-                <!-- Summary Footer -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2 border-t border-slate-100 text-xs font-medium text-slate-600">
-                    <div>
-                        Menampilkan <span id="lblReportCount" class="font-bold text-slate-900">0</span> transaksi
-                    </div>
+                    <div>Menampilkan <span id="lblReportCount" class="font-bold text-slate-900">0</span> transaksi</div>
                     <div class="flex flex-wrap gap-4 font-mono font-bold">
                         <span>Total Nominal: <span id="lblReportTotalNominal" class="text-slate-900">Rp 0</span></span>
                         <span>Total Diganti: <span id="lblReportTotalPaid" class="text-emerald-600">Rp 0</span></span>
                         <span>Sisa Hutang: <span id="lblReportTotalBalance" class="text-rose-600">Rp 0</span></span>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <!-- Modal Konfirmasi Action -->
         <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
                 <div class="flex items-center space-x-3 text-amber-600">
@@ -511,7 +463,6 @@
             </div>
         </div>
 
-        <!-- Modal Settings Google Web App URL -->
         <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
                 <div class="flex items-center space-x-3 text-slate-800">
@@ -520,7 +471,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-slate-900 text-sm sm:text-base">Pengaturan Web App URL</h3>
-                        <p class="text-xs text-slate-500">Google Apps Script Web App URL untuk sinkronisasi data</p>
+                        <p class="text-xs text-slate-500">Ganti URL Default di dalam script untuk akses permanen antar perangkat.</p>
                     </div>
                 </div>
                 <div>
@@ -529,12 +480,11 @@
                 </div>
                 <div class="flex space-x-3 pt-2">
                     <button type="button" onclick="closeSettingsModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs cursor-pointer transition">Batal</button>
-                    <button type="button" onclick="saveSettingsUrl()" class="w-1/2 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs cursor-pointer transition">Simpan Settings</button>
+                    <button type="button" onclick="saveSettingsUrl()" class="w-1/2 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs cursor-pointer transition">Simpan & Sync</button>
                 </div>
             </div>
         </div>
 
-        <!-- Custom Alert Modal -->
         <div id="customAlertModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-100">
                 <div id="alertIconWrapper" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-emerald-50 text-emerald-600 text-2xl">
@@ -551,8 +501,18 @@
     </main>
 
     <script>
-        // Global variables & state initialization
-        let GOOGLE_SCRIPT_URL = localStorage.getItem('EXPENSE_APP_URL') || 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        // =========================================================================
+        // ⚠️ PENTING: MASUKKAN URL GOOGLE SCRIPT ANDA DI BAWAH INI SECARA PERMANEN
+        // =========================================================================
+        // Ganti teks "TARUH_URL_WEB_APP_ANDA_DISINI" dengan URL Script Anda agar
+        // bisa diakses dari HP atau device manapun tanpa perlu setting berulang kali.
+        
+        const DEFAULT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzmgOx-GrP1GRBJNGmNUOY62WKV_J8HVtSobIEui0nBjli84Y-PdfsOimZlCxxP_KjW/exec"; 
+
+        // =========================================================================
+
+        let GOOGLE_SCRIPT_URL = localStorage.getItem('EXPENSE_APP_URL') || DEFAULT_WEB_APP_URL;
+        
         let localStore = JSON.parse(localStorage.getItem('DANTAL_LOCAL_DATA') || '[]');
         let paymentHistoryStore = JSON.parse(localStorage.getItem('DANTAL_PAYMENT_HISTORY') || '[]');
         let uploadedFilesArray = [];
@@ -561,7 +521,6 @@
         let pendingRepayPayload = null;
         let chartCatInstance = null;
         let chartEmpInstance = null;
-        let currentZoomScale = 1;
 
         function saveLocalStore() {
             localStorage.setItem('DANTAL_LOCAL_DATA', JSON.stringify(localStore));
@@ -586,17 +545,15 @@
                 GOOGLE_SCRIPT_URL = val;
                 localStorage.setItem('EXPENSE_APP_URL', val);
                 closeSettingsModal();
-                
-                // Langsung sinkronisasi otomatis setelah update URL Web App
-                fetchDataFromBackend(true);
+                // Langsung sinkronisasi otomatis ketika URL baru disimpan
+                fetchDataFromBackend(true); 
             }
         }
 
-        // Sinkronisasi otomatis saat aplikasi pertama kali dibuka
         function fetchDataFromBackend(isManual = false) {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('TARUH_URL_WEB_APP_ANDA_DISINI')) {
                 if (isManual) {
-                    showAlert('Perhatian', 'URL Web App belum diatur. Silakan atur URL Web App di tombol Pengaturan (Gear).', false);
+                    showAlert('Perhatian', 'URL Web App belum diatur di dalam script atau setting. Silakan set URL Web App terlebih dahulu.', false);
                 }
                 return;
             }
@@ -780,9 +737,9 @@
                 let div = document.createElement('div');
                 div.className = "relative border rounded-xl p-2 bg-slate-50 flex flex-col items-center justify-center aspect-square overflow-hidden shadow-xs group";
                 
-                let itemType = item.type || '';
-                let itemName = item.name || '';
-                let isPdf = itemType.includes('pdf') || itemName.toLowerCase().endsWith('.pdf');
+                let itemType = String(item.type || '').toLowerCase();
+                let itemName = String(item.name || '');
+                let isPdf = itemType.includes('pdf') || itemName.endsWith('.pdf');
 
                 if (isPdf) {
                     div.innerHTML = `
@@ -795,7 +752,7 @@
                 } else {
                     div.innerHTML = `
                         <img src="${item.base64 || item.url || ''}" class="w-full h-full object-cover rounded-lg cursor-pointer group-hover:opacity-90 transition" onclick="previewMediaDirect(${index}, 'form')">
-                        <span class="absolute bottom-1 bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded pointer-events-none">Klik untuk Zoom</span>
+                        <span class="absolute bottom-1 bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded pointer-events-none">Buka</span>
                     `;
                 }
 
@@ -813,7 +770,6 @@
             });
         }
 
-        // Eksekusi Buka Link Langsung di Tab Baru
         function previewMediaDirect(fileIndexOrItem, source = 'form', maybeTrxId = null) {
             let item = null;
             if (source === 'form') {
@@ -825,49 +781,39 @@
                 }
             }
 
-            if (!item) {
-                showAlert('Error', 'Data file tidak ditemukan.', false);
-                return;
-            }
+            if (!item) return;
 
-            // Normalisasi struktur item jika bentuknya string murni dari API
+            // Jika item adalah string (URL murni dari sheet)
             if (typeof item === 'string') {
-                item = { url: item, name: 'File Tersimpan', type: 'unknown' };
+                item = { url: item, type: 'unknown', name: 'Dokumen' };
             }
 
-            let itemBase64 = String(item.base64 || '');
-            let itemUrl = String(item.url || '');
-            let finalSrc = itemUrl || itemBase64; // Prioritaskan URL dari database jika ada
+            let targetUrl = item.url || item.base64 || '';
+            if (!targetUrl) return;
 
-            if (!finalSrc) {
-                showAlert('Error', 'Link URL file tidak valid atau kosong.', false);
-                return;
-            }
-
-            // Amankan link Google Drive agar terbuka di UI bawaan Google (Bebas error embed Edge)
-            let isDriveLink = finalSrc.includes('drive.google.com');
-            let openUrl = finalSrc;
-
+            // Jika itu link Google Drive, pastikan kita mengarahkan ke link asli untuk di-view langsung
+            let isDriveLink = targetUrl.includes('drive.google.com');
+            
             if (isDriveLink) {
-                let match = finalSrc.match(/\/d\/([a-zA-Z0-9_-]+)/) || finalSrc.match(/id=([a-zA-Z0-9_-]+)/);
-                let fileId = match ? match[1] : null;
-                if (fileId) {
-                    openUrl = `https://drive.google.com/file/d/${fileId}/view`;
-                }
-            }
-
-            // Eksekusi buka link
-            if (openUrl.startsWith('data:')) {
-                // Khusus file base64 lokal (baru dipilih di form, belum disimpan)
-                let win = window.open();
-                if (win) {
-                    win.document.write(`<iframe src="${openUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-                } else {
-                    showAlert('Pop-up Diblokir', 'Browser Anda memblokir pop-up. Izinkan pop-up untuk melihat pratinjau file lokal.', false);
-                }
+                // Biarkan browser / OS yang menghandle PDF atau Gambar via Tab Baru 
+                // Biasanya format defaultnya memang sudah /view dari apps script kita
+                window.open(targetUrl, '_blank');
             } else {
-                // Buka link URL eksternal / Google Drive langsung di tab baru
-                window.open(openUrl, '_blank');
+                // Base64 local image or other external links
+                // Membuka base64 di tab baru terkadang diblokir pop-up browser, 
+                // tapi ini cara paling bersih tanpa iframe modal.
+                let newWindow = window.open();
+                if (newWindow) {
+                    if (targetUrl.startsWith('data:image')) {
+                        newWindow.document.write(`<body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="${targetUrl}" style="max-width:100%; max-height:100%; object-fit:contain;"></body>`);
+                    } else if (targetUrl.startsWith('data:application/pdf')) {
+                        newWindow.document.write(`<body style="margin:0; height:100vh;"><embed src="${targetUrl}" type="application/pdf" width="100%" height="100%"></body>`);
+                    } else {
+                        newWindow.location.href = targetUrl;
+                    }
+                } else {
+                    showAlert('Pop-up Diblokir', 'Browser Anda memblokir tab baru. Izinkan pop-up untuk melihat file.', false);
+                }
             }
         }
 
@@ -911,7 +857,6 @@
         function populateEmployeeDropdowns() {
             let employees = Array.from(new Set(localStore.map(x => x.nama_karyawan))).filter(Boolean);
             
-            // Repay form employee select
             let repaySel = document.getElementById('repayEmployee');
             let currentRepayVal = repaySel.value;
             repaySel.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
@@ -920,7 +865,6 @@
             });
             if(employees.includes(currentRepayVal)) repaySel.value = currentRepayVal;
 
-            // History payment employee select
             let histSel = document.getElementById('historyFilterEmployee');
             let currentHistVal = histSel ? histSel.value : 'ALL';
             if (histSel) {
@@ -931,7 +875,6 @@
                 if(employees.includes(currentHistVal)) histSel.value = currentHistVal;
             }
 
-            // Dashboard filter employee
             let dashSel = document.getElementById('dashFilterEmployee');
             let currentDashVal = dashSel.value;
             dashSel.innerHTML = '<option value="ALL">Semua Karyawan</option>';
@@ -940,7 +883,6 @@
             });
             if(employees.includes(currentDashVal)) dashSel.value = currentDashVal;
 
-            // Report filter employee
             let repSel = document.getElementById('reportFilterEmployee');
             let currentRepVal = repSel.value;
             repSel.innerHTML = '<option value="ALL">Semua Karyawan</option>';
@@ -1279,7 +1221,6 @@
                 });
             }
 
-            // Simpan ke history pembayaran parsial
             paymentHistoryStore.unshift({
                 id_history: "PAY-" + Math.floor(100000 + Math.random() * 900000),
                 tanggal_bayar: date,
@@ -1468,7 +1409,6 @@
                     if (item.files && item.files.length > 0) {
                         fileBadgesHtml = `<div class="flex flex-wrap gap-1 justify-center">`;
                         item.files.forEach((f, fIdx) => {
-                            // Defensive check for file type
                             let fType = '';
                             let fName = 'File ' + (fIdx + 1);
                             let fUrl = '';
@@ -1487,8 +1427,7 @@
                             let isPdf = fType.includes('pdf') || 
                                         fName.toLowerCase().endsWith('.pdf') || 
                                         fBase64.startsWith('data:application/pdf') || 
-                                        fUrl.toLowerCase().includes('.pdf') ||
-                                        fUrl.toLowerCase().includes('export?format=pdf');
+                                        fUrl.toLowerCase().includes('.pdf');
                                         
                             let isDriveLink = fUrl.includes('drive.google.com');
                             
@@ -1566,7 +1505,6 @@
             }
         }
 
-        // Initialization on window load
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('expDate').valueAsDate = new Date();
             document.getElementById('repayDate').valueAsDate = new Date();
@@ -1574,8 +1512,6 @@
             renderDashboard();
             renderReportTable();
             renderPaymentHistory();
-            
-            // Sinkronisasi otomatis saat pertama kali dibuka
             fetchDataFromBackend(false);
         });
     </script>
