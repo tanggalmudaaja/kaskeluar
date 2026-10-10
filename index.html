@@ -10,8 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Interactive Dashboard Visualizations -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         tailwind.config = {
@@ -49,7 +47,7 @@
                     <p class="text-[10px] text-slate-500">Sistem Pencatatan & Penggantian Dantal</p>
                 </div>
             </div>
-            <!-- Tombol Sinkronisasi & Setting -->
+            <!-- Tombol Sinkronisasi & Setting dipindah ke Pojok Kanan Atas -->
             <div class="flex items-center space-x-2">
                 <button type="button" onclick="fetchDataFromBackend(true)" class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold flex items-center space-x-1.5 cursor-pointer transition border border-brand-200 shadow-xs" title="Sinkronisasi Data Sekarang">
                     <i class="fa-solid fa-rotate" id="syncIcon"></i>
@@ -86,6 +84,7 @@
 
     <main class="flex-grow max-w-6xl mx-auto px-4 py-6 w-full">
 
+        <!-- VIEW 1: DASHBOARD INTERAKTIF -->
         <section id="tabDashboard" class="space-y-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <div>
@@ -109,9 +108,8 @@
                         </div>
                     </div>
                     <p id="kpiTotalDantal" class="text-xl sm:text-2xl font-black font-heading text-slate-900 mt-2">Rp 0</p>
-                    <p class="text-[11px] text-slate-500 mt-1"><span id="kpiTotalTrxCount">0</span> Transaksi Dantal Terdaftar</p>
+                    <p class="text-[11px] text-slate-500 mt-1"><span id="kpiTotalTrxCount">0</span> Transaksi Terdaftar</p>
                 </div>
-
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sudah Diganti</span>
@@ -120,9 +118,8 @@
                         </div>
                     </div>
                     <p id="kpiTotalDiganti" class="text-xl sm:text-2xl font-black font-heading text-emerald-600 mt-2">Rp 0</p>
-                    <p class="text-[11px] text-emerald-700 font-medium mt-1"><i class="fa-solid fa-arrow-down-long"></i> Terbayarkan ke Karyawan</p>
+                    <p class="text-[11px] text-emerald-700 font-medium mt-1"><i class="fa-solid fa-arrow-down-long"></i> Terbayarkan</p>
                 </div>
-
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sisa Hutang Dantal</span>
@@ -133,7 +130,6 @@
                     <p id="kpiSisaHutang" class="text-xl sm:text-2xl font-black font-heading text-rose-600 mt-2">Rp 0</p>
                     <p class="text-[11px] text-rose-600 font-semibold mt-1" id="kpiUnpaidCount">0 Belum Lunas</p>
                 </div>
-
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rasio Penggantian</span>
@@ -148,27 +144,67 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-1 flex flex-col justify-between">
-                    <h3 class="text-sm font-bold font-heading text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <span><i class="fa-solid fa-chart-pie text-brand-600 mr-2"></i> Kategori Dana Talangan</span>
-                    </h3>
-                    <div class="relative h-60 my-auto flex items-center justify-center">
-                        <canvas id="chartCategory"></canvas>
+            <!-- Tabel Summary & Rincian Bulan Ini (Menggantikan Grafik) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                
+                <!-- Tabel 1: Summary Tahunan -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                        <h3 class="font-bold font-heading text-slate-900 flex items-center">
+                            <i class="fa-solid fa-calendar-days text-brand-600 mr-2"></i> Rekapitulasi Tahunan
+                        </h3>
+                        <select id="dashYear" onchange="renderDashboard()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 font-bold text-slate-700 bg-slate-50">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar flex-grow">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                                    <th class="p-2 font-bold">Bulan</th>
+                                    <th class="p-2 font-bold text-right">Saldo Awal</th>
+                                    <th class="p-2 font-bold text-right text-rose-700">+ Mutasi Dantal</th>
+                                    <th class="p-2 font-bold text-right text-emerald-700">- Mutasi Ganti</th>
+                                    <th class="p-2 font-bold text-right">Saldo Akhir</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                                <!-- Data diisi oleh JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
-                    <h3 class="text-sm font-bold font-heading text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <span><i class="fa-solid fa-chart-column text-brand-600 mr-2"></i> Sisa Hutang vs Sudah Diganti per Karyawan</span>
-                    </h3>
-                    <div class="relative h-60 my-auto">
-                        <canvas id="chartEmployeeStatus"></canvas>
+                <!-- Tabel 2: Rincian Bulan Berjalan -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                        <h3 class="font-bold font-heading text-slate-900 flex items-center">
+                            <i class="fa-solid fa-list-check text-brand-600 mr-2"></i> Rincian Harian
+                        </h3>
+                        <select id="dashDailyMonth" onchange="renderDashboard()" class="text-xs py-1.5 px-3 rounded-lg border border-slate-300 font-bold text-slate-700 bg-slate-50">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar flex-grow">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                                    <th class="p-2 font-bold">Tanggal</th>
+                                    <th class="p-2 font-bold text-right text-rose-700">Total Dantal</th>
+                                    <th class="p-2 font-bold text-right text-emerald-700">Total Diganti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="currentMonthTableBody">
+                                <!-- Data diisi oleh JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
             </div>
         </section>
 
+        <!-- VIEW 2: FORM HUTANG LAIN2 -->
         <section id="tabFormDantal" class="hidden max-w-4xl mx-auto">
             <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-6">
                 <div class="text-center pb-4 border-b border-slate-100">
@@ -248,6 +284,7 @@
             </div>
         </section>
 
+        <!-- VIEW 3: FORM PEMBAYARAN PENGGANTIAN -->
         <section id="tabFormPenggantian" class="hidden max-w-4xl mx-auto space-y-6">
             <div class="bg-white rounded-2xl p-5 sm:p-8 shadow-xl border border-slate-200 space-y-6">
                 <div class="text-center pb-4 border-b border-slate-100">
@@ -373,6 +410,7 @@
             </div>
         </section>
 
+        <!-- VIEW 4: LAPORAN & TABEL -->
         <section id="tabLaporan" class="hidden space-y-4">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -380,35 +418,42 @@
                         <h2 class="font-heading font-bold text-lg sm:text-xl text-slate-900 leading-tight">Laporan & Detail Transaksi Dantal</h2>
                         <p class="text-xs text-slate-500">Tabel histori lengkap pencatatan & status pelunasan dana talangan.</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button type="button" onclick="fetchDataFromBackend(true)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 cursor-pointer transition" title="Muat Ulang Data Real dari Google Sheets">
-                            <i class="fa-solid fa-rotate text-brand-600"></i>
-                            <span class="hidden sm:inline">Sync Data</span>
-                        </button>
-                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="relative">
+                <!-- Grid Filter Dinamis (Termasuk Date Range) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div class="relative lg:col-span-2">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="reportSearch" oninput="renderReportTable()" placeholder="Cari ID, Karyawan, Kategori..." class="pl-9 pr-3 py-2 rounded-xl custom-input text-xs">
+                        <input type="text" id="reportSearch" oninput="renderReportTable()" placeholder="Cari ID, Karyawan, Kategori, Keterangan..." class="w-full pl-9 pr-3 py-2 rounded-xl custom-input text-xs">
                     </div>
+                    
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-[9px] text-slate-400 text-[9px] font-bold uppercase">Mulai</span>
+                        <input type="date" id="reportStartDate" onchange="renderReportTable()" class="w-full pl-12 pr-2 py-2 rounded-xl custom-input text-xs text-slate-700 font-medium">
+                    </div>
+                    
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-[9px] text-slate-400 text-[9px] font-bold uppercase">Akhir</span>
+                        <input type="date" id="reportEndDate" onchange="renderReportTable()" class="w-full pl-12 pr-2 py-2 rounded-xl custom-input text-xs text-slate-700 font-medium">
+                    </div>
+
                     <div>
                         <select id="reportFilterStatus" onchange="renderReportTable()" class="w-full px-3 py-2 rounded-xl custom-input text-xs font-medium">
-                            <option value="ALL">-- Semua Status Pelunasan --</option>
+                            <option value="ALL">Semua Status</option>
                             <option value="Belum">Belum Lunas</option>
                             <option value="Sebagian">Sebagian</option>
                             <option value="Lunas">Lunas</option>
                         </select>
                     </div>
-                    <div>
-                        <select id="reportFilterEmployee" onchange="renderReportTable()" class="w-full px-3 py-2 rounded-xl custom-input text-xs font-medium">
+                    
+                    <div class="lg:col-span-5">
+                         <select id="reportFilterEmployee" onchange="renderReportTable()" class="w-full sm:w-1/3 px-3 py-2 rounded-xl custom-input text-xs font-medium">
                             <option value="ALL">Semua Karyawan</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200">
+                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200 mt-2">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -442,6 +487,7 @@
             </div>
         </section>
 
+        <!-- Modal Konfirmasi Action -->
         <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
                 <div class="flex items-center space-x-3 text-amber-600">
@@ -463,6 +509,7 @@
             </div>
         </div>
 
+        <!-- Modal Settings Google Web App URL -->
         <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
                 <div class="flex items-center space-x-3 text-slate-800">
@@ -485,6 +532,7 @@
             </div>
         </div>
 
+        <!-- Custom Alert Modal -->
         <div id="customAlertModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-100">
                 <div id="alertIconWrapper" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-emerald-50 text-emerald-600 text-2xl">
@@ -519,8 +567,6 @@
         let confirmActionType = null;
         let pendingExpensePayload = null;
         let pendingRepayPayload = null;
-        let chartCatInstance = null;
-        let chartEmpInstance = null;
 
         function saveLocalStore() {
             localStorage.setItem('DANTAL_LOCAL_DATA', JSON.stringify(localStore));
@@ -545,7 +591,6 @@
                 GOOGLE_SCRIPT_URL = val;
                 localStorage.setItem('EXPENSE_APP_URL', val);
                 closeSettingsModal();
-                // Langsung sinkronisasi otomatis ketika URL baru disimpan
                 fetchDataFromBackend(true); 
             }
         }
@@ -746,7 +791,7 @@
                         <div class="flex flex-col items-center justify-center h-full cursor-pointer w-full" onclick="previewMediaDirect(${index}, 'form')">
                             <i class="fa-solid fa-file-pdf text-rose-600 text-3xl mb-1 group-hover:scale-110 transition"></i>
                             <span class="text-[10px] text-slate-600 text-center truncate w-full px-1 font-semibold">${itemName}</span>
-                            <span class="text-[9px] text-brand-600 mt-1 underline">Klik Buka PDF</span>
+                            <span class="text-[9px] text-brand-600 mt-1 underline">Klik Buka</span>
                         </div>
                     `;
                 } else {
@@ -770,6 +815,7 @@
             });
         }
 
+        // BUKA FILE LANGSUNG KE TAB BARU TANPA MODAL EMBED
         function previewMediaDirect(fileIndexOrItem, source = 'form', maybeTrxId = null) {
             let item = null;
             if (source === 'form') {
@@ -783,7 +829,6 @@
 
             if (!item) return;
 
-            // Jika item adalah string (URL murni dari sheet)
             if (typeof item === 'string') {
                 item = { url: item, type: 'unknown', name: 'Dokumen' };
             }
@@ -791,29 +836,36 @@
             let targetUrl = item.url || item.base64 || '';
             if (!targetUrl) return;
 
-            // Jika itu link Google Drive, pastikan kita mengarahkan ke link asli untuk di-view langsung
             let isDriveLink = targetUrl.includes('drive.google.com');
             
             if (isDriveLink) {
-                // Biarkan browser / OS yang menghandle PDF atau Gambar via Tab Baru 
-                // Biasanya format defaultnya memang sudah /view dari apps script kita
-                window.open(targetUrl, '_blank');
-            } else {
-                // Base64 local image or other external links
-                // Membuka base64 di tab baru terkadang diblokir pop-up browser, 
-                // tapi ini cara paling bersih tanpa iframe modal.
-                let newWindow = window.open();
-                if (newWindow) {
-                    if (targetUrl.startsWith('data:image')) {
-                        newWindow.document.write(`<body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="${targetUrl}" style="max-width:100%; max-height:100%; object-fit:contain;"></body>`);
-                    } else if (targetUrl.startsWith('data:application/pdf')) {
-                        newWindow.document.write(`<body style="margin:0; height:100vh;"><embed src="${targetUrl}" type="application/pdf" width="100%" height="100%"></body>`);
+                // Manipulasi Link Google Drive ke format Preview / Raw Image
+                let isPdf = String(item.type || '').toLowerCase().includes('pdf') || String(item.name || '').toLowerCase().endsWith('.pdf');
+                
+                // Cari ID Unik Google Drive
+                let driveIdMatch = targetUrl.match(/[-\w]{25,}/); 
+                if (driveIdMatch && driveIdMatch[0]) {
+                    let driveId = driveIdMatch[0];
+                    if (isPdf) {
+                        targetUrl = `https://drive.google.com/file/d/${driveId}/preview`;
                     } else {
-                        newWindow.location.href = targetUrl;
+                        targetUrl = `https://drive.google.com/uc?export=view&id=${driveId}`;
                     }
-                } else {
-                    showAlert('Pop-up Diblokir', 'Browser Anda memblokir tab baru. Izinkan pop-up untuk melihat file.', false);
                 }
+            }
+            
+            // Langsung buka di Tab Baru. Solusi terbaik menembus blokiran Microsoft Edge/Chrome.
+            let newWindow = window.open();
+            if (newWindow) {
+                if (targetUrl.startsWith('data:image')) {
+                    newWindow.document.write(`<body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="${targetUrl}" style="max-width:100%; max-height:100%; object-fit:contain;"></body>`);
+                } else if (targetUrl.startsWith('data:application/pdf')) {
+                    newWindow.document.write(`<body style="margin:0; height:100vh;"><embed src="${targetUrl}" type="application/pdf" width="100%" height="100%"></body>`);
+                } else {
+                    newWindow.location.href = targetUrl;
+                }
+            } else {
+                showAlert('Pop-up Diblokir', 'Browser Anda memblokir Tab Baru. Mohon izinkan "Pop-up & Redirects" untuk melihat lampiran file ini.', false);
             }
         }
 
@@ -1285,6 +1337,9 @@
             });
         }
 
+        // ==========================================
+        // FITUR DASHBOARD (SUMMARY & RINCIAN) BARU
+        // ==========================================
         function renderDashboard() {
             let selectedEmp = document.getElementById('dashFilterEmployee').value;
             let data = localStore;
@@ -1293,9 +1348,10 @@
                 data = data.filter(x => x.nama_karyawan === selectedEmp);
             }
 
-            let totalDantal = data.reduce((s, x) => s + x.nominal, 0);
-            let totalDiganti = data.reduce((s, x) => s + x.nominal_diganti, 0);
-            let sisaHutang = data.reduce((s, x) => s + x.sisa_hutang, 0);
+            // Hitung KPI
+            let totalDantal = data.reduce((s, x) => s + (Number(x.nominal)||0), 0);
+            let totalDiganti = data.reduce((s, x) => s + (Number(x.nominal_diganti)||0), 0);
+            let sisaHutang = data.reduce((s, x) => s + (Number(x.sisa_hutang)||0), 0);
             let ratio = totalDantal > 0 ? Math.round((totalDiganti / totalDantal) * 100) : 0;
             let unpaidCount = data.filter(x => x.sisa_hutang > 0).length;
 
@@ -1303,78 +1359,204 @@
             document.getElementById('kpiTotalTrxCount').innerText = data.length;
             document.getElementById('kpiTotalDiganti').innerText = formatRp(totalDiganti);
             document.getElementById('kpiSisaHutang').innerText = formatRp(sisaHutang);
-            document.getElementById('kpiUnpaidCount').innerText = `${unpaidCount} Transaksi Belum Lunas`;
+            document.getElementById('kpiUnpaidCount').innerText = `${unpaidCount} Belum Lunas`;
             document.getElementById('kpiRatioPercent').innerText = `${ratio}%`;
             document.getElementById('kpiRatioBar').style.width = `${ratio}%`;
 
-            let catMap = {};
-            data.forEach(x => {
-                catMap[x.kategori] = (catMap[x.kategori] || 0) + x.nominal;
-            });
+            // Setup Year Select
+            let yearSelect = document.getElementById('dashYear');
+            if (yearSelect.options.length === 0) {
+                let years = new Set();
+                data.forEach(trx => {
+                    if (trx.tanggal && trx.tanggal.length >= 4) {
+                        years.add(trx.tanggal.substring(0,4));
+                    }
+                });
+                let currY = new Date().getFullYear().toString();
+                years.add(currY);
+                Array.from(years).sort().reverse().forEach(y => {
+                    yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+                });
+                yearSelect.value = currY;
+            }
+            
+            let selectedYear = parseInt(yearSelect.value) || new Date().getFullYear();
 
-            let catLabels = Object.keys(catMap);
-            let catValues = Object.values(catMap);
+            // Kalkulasi Summary Tahunan
+            let initialBalance = 0;
+            data.forEach(trx => {
+                let yDantal = parseInt(trx.tanggal ? trx.tanggal.substring(0,4) : 9999);
+                if (yDantal < selectedYear) {
+                    initialBalance += (Number(trx.nominal) || 0);
+                }
 
-            if (chartCatInstance) chartCatInstance.destroy();
-            let ctxCat = document.getElementById('chartCategory').getContext('2d');
-            chartCatInstance = new Chart(ctxCat, {
-                type: 'doughnut',
-                data: {
-                    labels: catLabels.length ? catLabels : ['Belum ada data'],
-                    datasets: [{
-                        data: catValues.length ? catValues : [1],
-                        backgroundColor: ['#16a34a', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                if (trx.history_pembayaran && Array.isArray(trx.history_pembayaran)) {
+                    trx.history_pembayaran.forEach(pay => {
+                        let yPay = parseInt(pay.tanggal ? pay.tanggal.substring(0,4) : 9999);
+                        if (yPay < selectedYear) {
+                            initialBalance -= (Number(pay.nominal) || 0);
+                        }
+                    });
+                } else if (trx.tanggal_diganti && trx.tanggal_diganti !== '-') {
+                     let yPay = parseInt(trx.tanggal_diganti.substring(0,4));
+                     if (yPay < selectedYear) {
+                         initialBalance -= (Number(trx.nominal_diganti) || 0);
+                     }
                 }
             });
 
-            let empMap = {};
-            data.forEach(x => {
-                if (!empMap[x.nama_karyawan]) empMap[x.nama_karyawan] = { paid: 0, unpaid: 0 };
-                empMap[x.nama_karyawan].paid += x.nominal_diganti;
-                empMap[x.nama_karyawan].unpaid += x.sisa_hutang;
-            });
+            let tbodySummary = document.getElementById('summaryTableBody');
+            tbodySummary.innerHTML = '';
+            
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            let runningSaldo = initialBalance;
 
-            let empLabels = Object.keys(empMap);
-            let paidData = empLabels.map(e => empMap[e].paid);
-            let unpaidData = empLabels.map(e => empMap[e].unpaid);
+            for (let m = 0; m < 12; m++) {
+                let monthStr = (m + 1).toString().padStart(2, '0');
+                let targetPrefix = `${selectedYear}-${monthStr}`;
+                
+                let mutasiTambah = 0;
+                let mutasiKurang = 0;
 
-            if (chartEmpInstance) chartEmpInstance.destroy();
-            let ctxEmp = document.getElementById('chartEmployeeStatus').getContext('2d');
-            chartEmpInstance = new Chart(ctxEmp, {
-                type: 'bar',
-                data: {
-                    labels: empLabels.length ? empLabels : ['-'],
-                    datasets: [
-                        { label: 'Sudah Diganti', data: paidData, backgroundColor: '#16a34a' },
-                        { label: 'Sisa Hutang Dantal', data: unpaidData, backgroundColor: '#e11d48' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true },
-                        y: { stacked: true, ticks: { callback: v => 'Rp ' + (v/1000) + 'k' } }
-                    },
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                data.forEach(trx => {
+                    if (trx.tanggal && trx.tanggal.startsWith(targetPrefix)) {
+                        mutasiTambah += (Number(trx.nominal) || 0);
+                    }
+                    if (trx.history_pembayaran && Array.isArray(trx.history_pembayaran)) {
+                        trx.history_pembayaran.forEach(pay => {
+                            if (pay.tanggal && pay.tanggal.startsWith(targetPrefix)) {
+                                mutasiKurang += (Number(pay.nominal) || 0);
+                            }
+                        });
+                    } else if (trx.tanggal_diganti && trx.tanggal_diganti.startsWith(targetPrefix)) {
+                        // fallback jika history kosong tapi status lunas ada tanggalnya
+                        mutasiKurang += (Number(trx.nominal_diganti) || 0);
+                    }
+                });
+
+                let saldoAwal = runningSaldo;
+                runningSaldo = saldoAwal + mutasiTambah - mutasiKurang;
+                let saldoAkhir = runningSaldo;
+
+                let tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-2 font-medium">${monthNames[m]}</td>
+                    <td class="p-2 text-right font-mono text-slate-500">${formatRp(saldoAwal)}</td>
+                    <td class="p-2 text-right font-mono font-bold text-rose-600">+ ${formatRp(mutasiTambah)}</td>
+                    <td class="p-2 text-right font-mono font-bold text-emerald-600">- ${formatRp(mutasiKurang)}</td>
+                    <td class="p-2 text-right font-mono font-extrabold text-slate-800">${formatRp(saldoAkhir)}</td>
+                `;
+                tbodySummary.appendChild(tr);
+            }
+
+            // Tabel 2: Rincian Harian per Bulan (Grouping by Date)
+            let dailyMonthSelect = document.getElementById('dashDailyMonth');
+            let monthSet = new Set();
+            
+            // Set Default Bulan Ini
+            let currM = new Date().getMonth() + 1;
+            let currY = new Date().getFullYear();
+            let currentYYYYMM = `${currY}-${currM.toString().padStart(2, '0')}`;
+            monthSet.add(currentYYYYMM);
+
+            // Kumpulkan daftar bulan unik dari data
+            data.forEach(trx => {
+                if (trx.tanggal && trx.tanggal.length >= 7) monthSet.add(trx.tanggal.substring(0, 7));
+                if (trx.history_pembayaran && Array.isArray(trx.history_pembayaran)) {
+                     trx.history_pembayaran.forEach(pay => {
+                         if (pay.tanggal && pay.tanggal.length >= 7) monthSet.add(pay.tanggal.substring(0, 7));
+                     });
+                } else if (trx.tanggal_diganti && trx.tanggal_diganti !== '-') {
+                    if (trx.tanggal_diganti.length >= 7) monthSet.add(trx.tanggal_diganti.substring(0, 7));
                 }
             });
+
+            // Urutkan Bulan dari terbaru ke terlama
+            let monthArr = Array.from(monthSet).sort().reverse();
+            let selectedYYYYMM = dailyMonthSelect.value || currentYYYYMM;
+            
+            dailyMonthSelect.innerHTML = '';
+            monthArr.forEach(ym => {
+                let [y, m] = ym.split('-');
+                let mName = monthNames[parseInt(m) - 1];
+                dailyMonthSelect.innerHTML += `<option value="${ym}">${mName} ${y}</option>`;
+            });
+            
+            // Set nilai dropdown sesuai pilihan terakhir, atau default bulan ini
+            if (monthArr.includes(selectedYYYYMM)) {
+                dailyMonthSelect.value = selectedYYYYMM;
+            } else {
+                dailyMonthSelect.value = currentYYYYMM;
+                selectedYYYYMM = currentYYYYMM;
+            }
+
+            // Hitung akumulasi Dantal & Ganti per Tanggal
+            let dailyData = {}; 
+            
+            data.forEach(trx => {
+                // Kalkulasi Dantal
+                if (trx.tanggal && trx.tanggal.startsWith(selectedYYYYMM)) {
+                    let d = trx.tanggal;
+                    if (!dailyData[d]) dailyData[d] = { dantal: 0, ganti: 0 };
+                    dailyData[d].dantal += (Number(trx.nominal) || 0);
+                }
+                // Kalkulasi Ganti
+                if (trx.history_pembayaran && Array.isArray(trx.history_pembayaran)) {
+                    trx.history_pembayaran.forEach(pay => {
+                        if (pay.tanggal && pay.tanggal.startsWith(selectedYYYYMM)) {
+                            let d = pay.tanggal;
+                            if (!dailyData[d]) dailyData[d] = { dantal: 0, ganti: 0 };
+                            dailyData[d].ganti += (Number(pay.nominal) || 0);
+                        }
+                    });
+                } else if (trx.tanggal_diganti && trx.tanggal_diganti.startsWith(selectedYYYYMM)) {
+                     let d = trx.tanggal_diganti;
+                     if (!dailyData[d]) dailyData[d] = { dantal: 0, ganti: 0 };
+                     dailyData[d].ganti += (Number(trx.nominal_diganti) || 0);
+                }
+            });
+
+            let tbodyCurr = document.getElementById('currentMonthTableBody');
+            tbodyCurr.innerHTML = '';
+            
+            // Render ke Tabel dengan urutan dari tanggal terbaru
+            let dailyKeys = Object.keys(dailyData).sort().reverse();
+            
+            if (dailyKeys.length === 0) {
+                tbodyCurr.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Belum ada transaksi di bulan ini.</td></tr>`;
+            } else {
+                dailyKeys.forEach(date => {
+                    let dantal = dailyData[date].dantal;
+                    let ganti = dailyData[date].ganti;
+                    
+                    let tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-100 hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="p-2 font-mono font-bold text-slate-800">${date}</td>
+                        <td class="p-2 text-right font-mono font-bold text-rose-600">${dantal > 0 ? '+ ' + formatRp(dantal) : '-'}</td>
+                        <td class="p-2 text-right font-mono font-bold text-emerald-600">${ganti > 0 ? '- ' + formatRp(ganti) : '-'}</td>
+                    `;
+                    tbodyCurr.appendChild(tr);
+                });
+            }
         }
 
+        // ==========================================
+        // FILTER & SORTING LAPORAN TERBARU
+        // ==========================================
         function renderReportTable() {
             let searchInput = document.getElementById('reportSearch');
             let statusSelect = document.getElementById('reportFilterStatus');
             let empSelect = document.getElementById('reportFilterEmployee');
+            let startDateInput = document.getElementById('reportStartDate');
+            let endDateInput = document.getElementById('reportEndDate');
 
             let search = searchInput ? searchInput.value.toLowerCase().trim() : '';
             let status = statusSelect ? statusSelect.value : 'ALL';
             let emp = empSelect ? empSelect.value : 'ALL';
+            let start = startDateInput ? startDateInput.value : '';
+            let end = endDateInput ? endDateInput.value : '';
 
             let filtered = localStore.filter(item => {
                 let matchSearch = (item.id_transaksi || '').toLowerCase().includes(search) ||
@@ -1384,8 +1566,28 @@
                 
                 let matchStatus = status === 'ALL' || item.status_pembayaran === status;
                 let matchEmp = emp === 'ALL' || item.nama_karyawan === emp;
+                
+                let matchDate = true;
+                if (start && item.tanggal < start) matchDate = false;
+                if (end && item.tanggal > end) matchDate = false;
 
-                return matchSearch && matchStatus && matchEmp;
+                return matchSearch && matchStatus && matchEmp && matchDate;
+            });
+
+            // URUTAN (SORTING): Tanggal Terakhir > No Transaksi Terakhir
+            filtered.sort((a, b) => {
+                let dateA = a.tanggal || "";
+                let dateB = b.tanggal || "";
+                if (dateA > dateB) return -1;
+                if (dateA < dateB) return 1;
+                
+                // Jika tanggal sama, urutkan dari ID Terbesar/Terbaru
+                let idA = a.id_transaksi || "";
+                let idB = b.id_transaksi || "";
+                if (idA > idB) return -1;
+                if (idA < idB) return 1;
+                
+                return 0;
             });
 
             let tbody = document.getElementById('reportTableBody');
